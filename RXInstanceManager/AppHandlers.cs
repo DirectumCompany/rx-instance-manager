@@ -141,7 +141,7 @@ namespace RXInstanceManager
         return Constants.NullVersion;
 
       var manifestFile = Path.Combine(solutionBuildsPath, "manifest.json");
-      if (!File.Exists(manifestFile))
+      if (File.Exists(manifestFile))
       {
         var directoryInfo = new DirectoryInfo(solutionBuildsPath);
         var subDirectories = directoryInfo.GetDirectories();
