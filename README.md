@@ -1,6 +1,8 @@
 # Описание утилиты RX Instance Manager
 Утилита является GUI-обверткой вокруг компоненты Manage Applied Tools
 
+![](https://github.com/DirectumCompany/rx-instance-manager/blob/main/rx-instance-manager.png)
+
 Возможности RXInstanceManager:
  1. Добавление инстанса - кнопка "Добавить" и выбрать папку инстанса. Список подключенных инстансов хранится в файле `rxman.yaml` к каталоге приложения.
  2. Запуск/остановка сервисов инстанса - кнопки "do all up" и "do all down"
