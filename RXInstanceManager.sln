@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32616.157
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RXInstanceManager", "RXInstanceManager\RXInstanceManager.csproj", "{93DDFFE1-5B52-4444-B4CD-4E3EC1B2E226}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{93DDFFE1-5B52-4444-B4CD-4E3EC1B2E226}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93DDFFE1-5B52-4444-B4CD-4E3EC1B2E226}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93DDFFE1-5B52-4444-B4CD-4E3EC1B2E226}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93DDFFE1-5B52-4444-B4CD-4E3EC1B2E226}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5C3ABE5F-7129-41B7-84F1-EF2FCCF2C586}
+	EndGlobalSection
+EndGlobal
