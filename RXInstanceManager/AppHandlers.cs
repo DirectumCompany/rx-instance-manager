@@ -143,16 +143,19 @@ namespace RXInstanceManager
       var manifestFile = Path.Combine(solutionBuildsPath, "manifest.json");
       if (File.Exists(manifestFile))
       {
-        var directoryInfo = new DirectoryInfo(solutionBuildsPath);
-        var subDirectories = directoryInfo.GetDirectories();
-        if (subDirectories.Count(x => x.Name.StartsWith("4.")) == 1)
-          return subDirectories.FirstOrDefault(x => x.Name.StartsWith("4.")).Name;
         var json = File.ReadAllText(manifestFile);
         var solution = JsonSerializer.Deserialize<Solution>(json);
         return solution.Version;
       }
       else
-        return string.Empty;
+      {
+        var directoryInfo = new DirectoryInfo(solutionBuildsPath);
+        var subDirectories = directoryInfo.GetDirectories();
+        if (subDirectories.Count(x => x.Name.StartsWith("4.")) == 1)
+          return subDirectories.FirstOrDefault(x => x.Name.StartsWith("4.")).Name;
+        else
+          return string.Empty;
+      }
     }
 
     #endregion
