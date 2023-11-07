@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.ServiceProcess;
 using System.Security.Principal;
 using System.Security.AccessControl;
+using System.Threading.Tasks;
 using NLog;
 
 namespace RXInstanceManager
@@ -47,9 +48,9 @@ namespace RXInstanceManager
         inst.Port = yamlValues.GetConfigIntValue("variables.http_port") ?? 0;
         inst.URL = AppHelper.GetClientURL(protocol, host, inst.Port);
         inst.StoragePath = yamlValues.GetConfigStringValue("variables.home_path");
-        if (inst.StoragePath == "{{ home_path_src }}")
-          inst.StoragePath = yamlValues.GetConfigStringValue("variables.home_path_src");
         inst.SourcesPath = yamlValues.GetConfigStringValue("services_config.DevelopmentStudio.GIT_ROOT_DIRECTORY");
+        if (inst.SourcesPath == "{{ home_path_src }}")
+          inst.SourcesPath = yamlValues.GetConfigStringValue("variables.home_path_src");
         inst.PlatformVersion = GetInstancePlatformVersion(inst.InstancePath);
         inst.SolutionVersion = GetInstanceSolutionVersion(inst.InstancePath);
 
@@ -207,34 +208,37 @@ namespace RXInstanceManager
 
     public static void LaunchProcess(string fileName, string args, bool asAdmin, bool waitForExit)
     {
-      using (var process = new Process())
+      Task.Run(() =>
       {
-        process.StartInfo.FileName = fileName;
-
-        if (!string.IsNullOrEmpty(args))
+        using (var process = new Process())
         {
-          if (!waitForExit && asAdmin)
-            args = args.Replace(" /K ", " /C ");
+          process.StartInfo.FileName = fileName;
 
-          process.StartInfo.Arguments = args;
+          if (!string.IsNullOrEmpty(args))
+          {
+            if (!waitForExit && asAdmin)
+              args = args.Replace(" /K ", " /C ");
+
+            process.StartInfo.Arguments = args;
+          }
+
+          if (asAdmin)
+            process.StartInfo.Verb = "runas";
+
+          try
+          {
+            process.Start();
+
+            if (waitForExit)
+              process.WaitForExit();
+          }
+          catch (System.ComponentModel.Win32Exception ex)
+          {
+            if (ex.Message != "Операция была отменена пользователем")
+              throw ex;
+          }
         }
-
-        if (asAdmin)
-          process.StartInfo.Verb = "runas";
-
-        try
-        {
-          process.Start();
-
-          if (waitForExit)
-            process.WaitForExit();
-        }
-        catch (System.ComponentModel.Win32Exception ex)
-        {
-          if (ex.Message != "Операция была отменена пользователем")
-            throw ex;
-        }
-      }
+      });
     }
 
     public static void ExecuteCmdCommand(string command)

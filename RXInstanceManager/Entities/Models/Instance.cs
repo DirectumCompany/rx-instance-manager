@@ -56,9 +56,9 @@ namespace RXInstanceManager
           this.Port = yamlValues.GetConfigIntValue("variables.http_port") ?? 0;
           this.URL = AppHelper.GetClientURL(protocol, host, this.Port);
           this.StoragePath = yamlValues.GetConfigStringValue("variables.home_path");
-          if (this.StoragePath == "{{ home_path_src }}")
-            this.StoragePath = yamlValues.GetConfigStringValue("variables.home_path_src");
           this.SourcesPath = yamlValues.GetConfigStringValue("services_config.DevelopmentStudio.GIT_ROOT_DIRECTORY");
+          if (this.SourcesPath == "{{ home_path_src }}")
+            this.SourcesPath = yamlValues.GetConfigStringValue("variables.home_path_src");
           this.PlatformVersion = AppHandlers.GetInstancePlatformVersion(instancePath);
           this.SolutionVersion = AppHandlers.GetInstanceSolutionVersion(instancePath);
           this.Status = AppHandlers.GetServiceStatus(this);
