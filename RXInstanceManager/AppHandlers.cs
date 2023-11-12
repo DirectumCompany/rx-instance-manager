@@ -7,7 +7,10 @@ using System.Diagnostics;
 using System.ServiceProcess;
 using System.Security.Principal;
 using System.Security.AccessControl;
+using System.Threading.Tasks;
 using NLog;
+using System.Dynamic;
+using YamlDotNet.Serialization;
 
 namespace RXInstanceManager
 {
@@ -47,11 +50,26 @@ namespace RXInstanceManager
         inst.Port = yamlValues.GetConfigIntValue("variables.http_port") ?? 0;
         inst.URL = AppHelper.GetClientURL(protocol, host, inst.Port);
         inst.StoragePath = yamlValues.GetConfigStringValue("variables.home_path");
-        if (inst.StoragePath == "{{ home_path_src }}")
-          inst.StoragePath = yamlValues.GetConfigStringValue("variables.home_path_src");
         inst.SourcesPath = yamlValues.GetConfigStringValue("services_config.DevelopmentStudio.GIT_ROOT_DIRECTORY");
+        if (inst.SourcesPath == "{{ home_path_src }}")
+          inst.SourcesPath = yamlValues.GetConfigStringValue("variables.home_path_src");
         inst.PlatformVersion = GetInstancePlatformVersion(inst.InstancePath);
         inst.SolutionVersion = GetInstanceSolutionVersion(inst.InstancePath);
+
+        using (var reader = new StreamReader(inst.ProjectConfigPath))
+        {
+          var deserializer = new DeserializerBuilder().Build();
+          dynamic ymlData = deserializer.Deserialize<ExpandoObject>(reader.ReadToEnd());
+          var repositories = ymlData.services_config["DevelopmentStudio"]["REPOSITORIES"]["repository"];
+          foreach (var repository in repositories)
+          {
+            if (repository["@solutionType"] == "Work")
+            {
+              inst.WorkingRepositoryName = repository["@folderName"];
+              break;
+            }
+          }
+        }
 
         inst.Status = AppHandlers.GetServiceStatus(inst);
         inst.ConfigChanged = AppHelper.GetFileChangeTime(configFilePath);
@@ -70,6 +88,7 @@ namespace RXInstanceManager
         inst.PlatformVersion = string.Empty;
         inst.SolutionVersion = string.Empty;
         inst.Status = Constants.InstanceStatus.NotInstalled;
+        inst.WorkingRepositoryName = string.Empty;
       }
     }
 

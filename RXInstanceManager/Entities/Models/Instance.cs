@@ -1,6 +1,10 @@
 using System;
 using System.Text;
 using System.IO;
+using System.Collections.Generic;
+using System.Collections;
+using System.Dynamic;
+using YamlDotNet.Serialization;
 
 namespace RXInstanceManager
 {
@@ -56,13 +60,28 @@ namespace RXInstanceManager
           this.Port = yamlValues.GetConfigIntValue("variables.http_port") ?? 0;
           this.URL = AppHelper.GetClientURL(protocol, host, this.Port);
           this.StoragePath = yamlValues.GetConfigStringValue("variables.home_path");
-          if (this.StoragePath == "{{ home_path_src }}")
-            this.StoragePath = yamlValues.GetConfigStringValue("variables.home_path_src");
           this.SourcesPath = yamlValues.GetConfigStringValue("services_config.DevelopmentStudio.GIT_ROOT_DIRECTORY");
+          if (this.SourcesPath == "{{ home_path_src }}")
+            this.SourcesPath = yamlValues.GetConfigStringValue("variables.home_path_src");
           this.PlatformVersion = AppHandlers.GetInstancePlatformVersion(instancePath);
           this.SolutionVersion = AppHandlers.GetInstanceSolutionVersion(instancePath);
           this.Status = AppHandlers.GetServiceStatus(this);
           this.ConfigChanged = AppHelper.GetFileChangeTime(configYamlPath);
+
+          using (var reader = new StreamReader(this.ProjectConfigPath))
+          {
+            var deserializer = new DeserializerBuilder().Build();
+            dynamic ymlData = deserializer.Deserialize<ExpandoObject>(reader.ReadToEnd());
+            var repositories = ymlData.services_config["DevelopmentStudio"]["REPOSITORIES"]["repository"];
+            foreach (var repository in repositories)
+            {
+              if (repository["@solutionType"] == "Work")
+              {
+                this.WorkingRepositoryName = repository["@folderName"];
+                break;
+              }
+            }
+          }
         }
       }
       catch (Exception ex)
@@ -99,6 +118,8 @@ namespace RXInstanceManager
     public string StoragePath { get; set; }
 
     public string SourcesPath { get; set; }
+
+    public string WorkingRepositoryName { get; set; }
 
     public string Status { get; set; }
 

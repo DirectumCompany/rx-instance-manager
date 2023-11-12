@@ -25,7 +25,8 @@
       <RowDefinition Height="30" />
     </Grid.RowDefinitions>
     <Button x:Name="HiddenButton" Grid.Column="0" Grid.Row="0" Width="150" Background="#222b34" Click="HiddenButton_Click" />
-    <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Style="{DynamicResource HeaderStackPanel}"/>
+    <Button x:Name="ButtonDisableMinimizeToTray" Grid.Column="3" Grid.Row="0" Width="40" Background="#5b5f6a" Click="ButtonDisableMinimizeToTray_Click" />
+    <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="1" Style="{DynamicResource HeaderStackPanel}"/>
     <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Style="{DynamicResource HeaderStackPanel}"/>
     <StackPanel Orientation="Vertical" Grid.Row="1" Grid.Column="0" Grid.RowSpan="2" Background="#2C353C" />
     <StackPanel Orientation="Vertical" Grid.Row="1" Grid.Column="2" Grid.RowSpan="2" Background="#5b5f6a" />
@@ -41,7 +42,8 @@
         <Button x:Name="ButtonStop" Content="do all down" Style="{DynamicResource RecordActionButton}" Background="SteelBlue" Click="ButtonStop_Click" />
         <Button x:Name="ButtonDDSStart" Content="Development Studio" Style="{DynamicResource RecordActionButton}" Background="GreenYellow" Click="ButtonDDSStart_Click" />
         <Button x:Name="ButtonRXStart" Content="Веб-клиент" Style="{DynamicResource RecordActionButton}" Background="Violet" Click="ButtonRXStart_Click" />
-        <Button x:Name="ButtonLogsFolder" Content="Папка логов" Style="{DynamicResource RecordActionButton}" Background="Gray" Click="ButtonLogsFolder_Click"></Button>
+        <Button x:Name="ButtonLogsFolder" Content="Папка логов" Style="{DynamicResource RecordActionButton}" Background="Gray" Click="ButtonLogsFolder_Click" />
+        <Button x:Name="ButtonSourcesFolder" Content="Папка источников" Style="{DynamicResource RecordActionButton}" Background="#FFDCA3FF" Click="ButtonSourcesFolder_Click" />
       </StackPanel>
       <DataGrid x:Name="GridInstances" AutoGenerateColumns="False" Style="{DynamicResource DataGridStyle}" Grid.Row="1" SelectionChanged="GridInstances_SelectionChanged" >
         <DataGrid.Columns>
@@ -70,6 +72,7 @@
             <MenuItem x:Name="ConvertDBsContext" Header="Конвертировать БД проектов" Click="ConvertDBsContext_Click" />
             <MenuItem x:Name="RemoveProjectDataContext" Header="Удалить БД и домашний каталог выбранного проекта" Click="RemoveProjectDataContext_Click" />
             <MenuItem x:Name="RemoveInstance" Header="Убрать инстанс из списка" Click="RemoveInstance_Click" />
+            <MenuItem x:Name="RXFolder" Header="Открыть папку инстанса" Click="RXFolder_Click" />
           </ContextMenu>
         </DataGrid.ContextMenu>
       </DataGrid>
