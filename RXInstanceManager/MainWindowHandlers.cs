@@ -78,7 +78,6 @@ namespace RXInstanceManager
       ButtonDDSStart.Visibility = Visibility.Collapsed;
       ButtonRXStart.Visibility = Visibility.Collapsed;
       ButtonLogsFolder.Visibility = Visibility.Collapsed;
-      ButtonRXFolder.Visibility = Visibility.Collapsed;
       ButtonSourcesFolder.Visibility = Visibility.Collapsed;
 
       var IsVisibleContextButton = _instance == null || string.IsNullOrEmpty(_instance.Code) ? Visibility.Collapsed : Visibility.Visible;
@@ -95,6 +94,7 @@ namespace RXInstanceManager
       ProjectConfigContext.Visibility = IsVisibleContextButton;
       ConvertDBsContext.Visibility = IsVisibleContextButton;
       RemoveProjectDataContext.Visibility = IsVisibleContextButton;
+      RXFolder.Visibility = IsVisibleContextButton;
 
       status = _instance == null || string.IsNullOrEmpty(_instance.Code) ? status : _instance.Status;
         
@@ -106,7 +106,6 @@ namespace RXInstanceManager
           ButtonStop.Visibility = Visibility.Collapsed;
           ButtonStart.Visibility = Visibility.Visible;
           ButtonLogsFolder.Visibility = Visibility.Visible;
-          ButtonRXFolder.Visibility = Visibility.Visible;
           ButtonSourcesFolder.Visibility = Visibility.Visible;
           break;
         case Constants.InstanceStatus.Working:
@@ -115,7 +114,6 @@ namespace RXInstanceManager
           ButtonStop.Visibility = Visibility.Visible;
           ButtonStart.Visibility = Visibility.Collapsed;
           ButtonLogsFolder.Visibility = Visibility.Visible;
-          ButtonRXFolder.Visibility = Visibility.Visible;
           ButtonSourcesFolder.Visibility = Visibility.Visible;
           break;
       }

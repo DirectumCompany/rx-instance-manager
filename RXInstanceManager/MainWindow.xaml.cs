@@ -5,8 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Reflection;
 using System.Windows.Forms;
-
-
+using System.Threading.Tasks;
 
 namespace RXInstanceManager
 {
@@ -372,7 +371,7 @@ namespace RXInstanceManager
 
       try
       {
-        AppHandlers.ExecuteCmdCommand($"cd /d {_instance.InstancePath}", true);
+        Task.Run(() => AppHandlers.ExecuteCmdCommand($"cd /d {_instance.InstancePath}", true));
       }
       catch (Exception ex)
       {
@@ -409,7 +408,7 @@ namespace RXInstanceManager
 
       try
       {
-        AppHandlers.LaunchProcess(AppHelper.GetDoPath(_instance.InstancePath), "map current -need_pause", true, true);
+        Task.Run(() => AppHandlers.LaunchProcess(AppHelper.GetDoPath(_instance.InstancePath), "map current -need_pause", true, true));
       }
       catch (Exception ex)
       {
@@ -444,14 +443,9 @@ namespace RXInstanceManager
       AppHandlers.LaunchProcess(logs_folder);
     }
 
-    private void ButtonRXFolder_Click(object sender, RoutedEventArgs e)
-    {
-      AppHandlers.LaunchProcess(_instance.InstancePath);
-    }
-
     private void ButtonSourcesFolder_Click(object sender, RoutedEventArgs e)
     {
-      AppHandlers.LaunchProcess(_instance.SourcesPath);
+      AppHandlers.LaunchProcess(_instance.SourcesPath + $"//{_instance.WorkingRepositoryName}");
     }
 
     private void ClearLogAllInstancesContext_Click(object sender, RoutedEventArgs e)
@@ -590,6 +584,11 @@ namespace RXInstanceManager
                                     true, true);
         }
       }
+    }
+
+    private void RXFolder_Click(object sender, RoutedEventArgs e)
+    {
+      AppHandlers.LaunchProcess(_instance.InstancePath);
     }
 
     private void TrayStatus()

@@ -9,6 +9,8 @@ using System.Security.Principal;
 using System.Security.AccessControl;
 using System.Threading.Tasks;
 using NLog;
+using System.Dynamic;
+using YamlDotNet.Serialization;
 
 namespace RXInstanceManager
 {
@@ -54,6 +56,21 @@ namespace RXInstanceManager
         inst.PlatformVersion = GetInstancePlatformVersion(inst.InstancePath);
         inst.SolutionVersion = GetInstanceSolutionVersion(inst.InstancePath);
 
+        using (var reader = new StreamReader(inst.ProjectConfigPath))
+        {
+          var deserializer = new DeserializerBuilder().Build();
+          dynamic ymlData = deserializer.Deserialize<ExpandoObject>(reader.ReadToEnd());
+          var repositories = ymlData.services_config["DevelopmentStudio"]["REPOSITORIES"]["repository"];
+          foreach (var repository in repositories)
+          {
+            if (repository["@solutionType"] == "Work")
+            {
+              inst.WorkingRepositoryName = repository["@folderName"];
+              break;
+            }
+          }
+        }
+
         inst.Status = AppHandlers.GetServiceStatus(inst);
         inst.ConfigChanged = AppHelper.GetFileChangeTime(configFilePath);
       }
@@ -71,6 +88,7 @@ namespace RXInstanceManager
         inst.PlatformVersion = string.Empty;
         inst.SolutionVersion = string.Empty;
         inst.Status = Constants.InstanceStatus.NotInstalled;
+        inst.WorkingRepositoryName = string.Empty;
       }
     }
 
@@ -208,37 +226,34 @@ namespace RXInstanceManager
 
     public static void LaunchProcess(string fileName, string args, bool asAdmin, bool waitForExit)
     {
-      Task.Run(() =>
+      using (var process = new Process())
       {
-        using (var process = new Process())
+        process.StartInfo.FileName = fileName;
+
+        if (!string.IsNullOrEmpty(args))
         {
-          process.StartInfo.FileName = fileName;
+          if (!waitForExit && asAdmin)
+            args = args.Replace(" /K ", " /C ");
 
-          if (!string.IsNullOrEmpty(args))
-          {
-            if (!waitForExit && asAdmin)
-              args = args.Replace(" /K ", " /C ");
-
-            process.StartInfo.Arguments = args;
-          }
-
-          if (asAdmin)
-            process.StartInfo.Verb = "runas";
-
-          try
-          {
-            process.Start();
-
-            if (waitForExit)
-              process.WaitForExit();
-          }
-          catch (System.ComponentModel.Win32Exception ex)
-          {
-            if (ex.Message != "Операция была отменена пользователем")
-              throw ex;
-          }
+          process.StartInfo.Arguments = args;
         }
-      });
+
+        if (asAdmin)
+          process.StartInfo.Verb = "runas";
+
+        try
+        {
+          process.Start();
+
+          if (waitForExit)
+            process.WaitForExit();
+        }
+        catch (System.ComponentModel.Win32Exception ex)
+        {
+          if (ex.Message != "Операция была отменена пользователем")
+            throw ex;
+        }
+      }
     }
 
     public static void ExecuteCmdCommand(string command)
