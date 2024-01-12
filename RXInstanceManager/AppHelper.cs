@@ -146,7 +146,7 @@ namespace RXInstanceManager
 
       if (engine == "postgres")
       {
-        var databaseNameParam = connectionString.Split(';').FirstOrDefault(x => x.Contains("Database"));
+        var databaseNameParam = connectionString.Split(';').FirstOrDefault(x => x.Contains("database"));
         if (databaseNameParam != null)
           return databaseNameParam.Split('=')[1];
       }
