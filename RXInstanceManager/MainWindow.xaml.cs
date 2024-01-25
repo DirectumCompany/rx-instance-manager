@@ -432,21 +432,20 @@ namespace RXInstanceManager
 
     private void ButtonLogsFolder_Click(object sender, RoutedEventArgs e)
     {
-      var configYamlPath = AppHelper.GetConfigYamlPath(_instance.InstancePath);
-      var yamlValues = YamlSimple.Parser.ParseFile(configYamlPath);
-      var instance_name = yamlValues.GetConfigStringValue("variables.instance_name");
-      var logs_folder = yamlValues.GetConfigStringValue("logs_path.LOGS_PATH");
-      if (logs_folder.Contains("{{ instance_name }}"))
-      {
-        logs_folder = logs_folder.Replace("{{ instance_name }}", instance_name);
-      }
-      AppHandlers.LaunchProcess(logs_folder);
+      if (Directory.Exists(_instance.LogFolder))
+        AppHandlers.LaunchProcess(_instance.LogFolder);
+      else
+        System.Windows.MessageBox.Show($"Папка {_instance.LogFolder} не существует.", "", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
     }
 
     private void ButtonSourcesFolder_Click(object sender, RoutedEventArgs e)
     {
-      AppHandlers.LaunchProcess(_instance.SourcesPath + $"//{_instance.WorkingRepositoryName}");
+      if (Directory.Exists(_instance.WorkingRepositoryName))
+        AppHandlers.LaunchProcess(_instance.WorkingRepositoryName);
+      else
+        System.Windows.MessageBox.Show($"Папка {_instance.WorkingRepositoryName} не существует.", "", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
     }
+
 
     private void ClearLogAllInstancesContext_Click(object sender, RoutedEventArgs e)
     {
@@ -575,10 +574,7 @@ namespace RXInstanceManager
           AppHandlers.LaunchProcess(AppHelper.GetDoPath(_instance.InstancePath),
                                     string.Format("do db drop"),
                                     true, true);
-          var configYamlPath = AppHelper.GetConfigYamlPath(openFileDialog.FileName);
-          var yamlValues = YamlSimple.Parser.ParseFile(configYamlPath);
-          var home_path = yamlValues.GetConfigStringValue("variables.home_path");
-          Directory.Delete(home_path, true);
+          Directory.Delete(_instance.StoragePath, true);
           AppHandlers.LaunchProcess(AppHelper.GetDoPath(_instance.InstancePath),
                                     string.Format("map set {0} -rundds=False -need_pause", currentProjectConfig),
                                     true, true);

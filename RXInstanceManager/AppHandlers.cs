@@ -32,47 +32,59 @@ namespace RXInstanceManager
       var configFilePath = AppHelper.GetConfigYamlPath(instance.InstancePath);
       if (File.Exists(configFilePath))
       {
-        var yamlValues = YamlSimple.Parser.ParseFile(configFilePath);
-
-        var protocol = yamlValues.GetConfigStringValue("variables.protocol");
-        var host = yamlValues.GetConfigStringValue("variables.host_fqdn");
-
-        inst.DBEngine = yamlValues.GetConfigStringValue("common_config.DATABASE_ENGINE");
-        var connection = yamlValues.GetConfigStringValue("common_config.CONNECTION_STRING");
-        inst.ServerDB = AppHelper.GetServerFromConnectionString(inst.DBEngine, connection);
-        var dbName = AppHelper.GetDBNameFromConnectionString(inst.DBEngine, connection);
-        if (dbName == "{{ database }}")
-          dbName = yamlValues.GetConfigStringValue("variables.database");
-        inst.DBName = dbName ?? string.Empty;
-
-        inst.Name = yamlValues.GetConfigStringValue("variables.purpose");
-        inst.ProjectConfigPath = yamlValues.GetConfigStringValue("variables.project_config_path");
-        inst.Port = yamlValues.GetConfigIntValue("variables.http_port") ?? 0;
-        inst.URL = AppHelper.GetClientURL(protocol, host, inst.Port);
-        inst.StoragePath = yamlValues.GetConfigStringValue("variables.home_path");
-        inst.SourcesPath = yamlValues.GetConfigStringValue("services_config.DevelopmentStudio.GIT_ROOT_DIRECTORY");
-        if (inst.SourcesPath == "{{ home_path_src }}")
-          inst.SourcesPath = yamlValues.GetConfigStringValue("variables.home_path_src");
-        inst.PlatformVersion = GetInstancePlatformVersion(inst.InstancePath);
-        inst.SolutionVersion = GetInstanceSolutionVersion(inst.InstancePath);
-
-        using (var reader = new StreamReader(inst.ProjectConfigPath))
+        using (var reader = new StreamReader(configFilePath))
         {
           var deserializer = new DeserializerBuilder().Build();
           dynamic ymlData = deserializer.Deserialize<ExpandoObject>(reader.ReadToEnd());
+
+          var protocol = ymlData.variables["protocol"];
+          var host = ymlData.variables["host_fqdn"];
+          var connection = ymlData.common_config["CONNECTION_STRING"];
+
+          inst.DBEngine = ymlData.common_config["DATABASE_ENGINE"];
+          inst.ServerDB = AppHelper.GetServerFromConnectionString(inst.DBEngine, connection);
+          var dbName = AppHelper.GetDBNameFromConnectionString(inst.DBEngine, connection);
+          if (dbName == "{{ database }}")
+            dbName = ymlData.variables["database"];
+          inst.DBName = dbName ?? string.Empty;
+
+          inst.Name = ymlData.variables["purpose"];
+          inst.ProjectConfigPath = ymlData.variables["project_config_path"];
+
+          inst.Port = Convert.ToInt32(ymlData.variables["http_port"]);
+          inst.URL = AppHelper.GetClientURL(protocol, host, inst.Port);
+          inst.StoragePath = ymlData.variables["home_path"];
+          inst.LogFolder = ymlData.logs_path["LOGS_PATH"];
+          if (inst.LogFolder.Contains("{{ instance_name }}"))
+          {
+            inst.LogFolder = inst.LogFolder.Replace("{{ instance_name }}", inst.Code);
+          }
+
+          inst.SourcesPath = ymlData.services_config["DevelopmentStudio"]["GIT_ROOT_DIRECTORY"];
+          if (inst.SourcesPath == "{{ home_path_src }}")
+            inst.SourcesPath = ymlData.variables["home_path_src"];
+          inst.PlatformVersion = GetInstancePlatformVersion(inst.InstancePath);
+          inst.SolutionVersion = GetInstanceSolutionVersion(inst.InstancePath);
+
           var repositories = ymlData.services_config["DevelopmentStudio"]["REPOSITORIES"]["repository"];
+          inst.WorkingRepositoryName = String.Empty;
           foreach (var repository in repositories)
           {
             if (repository["@solutionType"] == "Work")
             {
-              inst.WorkingRepositoryName = repository["@folderName"];
-              break;
+              if (String.IsNullOrEmpty(inst.WorkingRepositoryName))
+                inst.WorkingRepositoryName = System.IO.Path.Combine(inst.SourcesPath, repository["@folderName"]);
+              else
+              {
+                inst.WorkingRepositoryName = inst.SourcesPath;
+                break;
+              }
             }
           }
+          inst.Status = AppHandlers.GetServiceStatus(inst);
+          inst.ConfigChanged = AppHelper.GetFileChangeTime(configFilePath);
         }
 
-        inst.Status = AppHandlers.GetServiceStatus(inst);
-        inst.ConfigChanged = AppHelper.GetFileChangeTime(configFilePath);
       }
       else
       {

@@ -25,63 +25,60 @@ namespace RXInstanceManager
         this.InstancePath = instancePath;
         if (File.Exists(configYamlPath))
         {
-          //TODO сделать проверки при добавлении
-          /*
-          if (!File.Exists(configYamlPath))
+          using (var reader = new StreamReader(configYamlPath))
           {
-            System.Windows.MessageBox.Show(string.Format("Папка '{0}' папка не является папкой экземпляра DirectumRX (Не найден config.yml)", configYamlPath),
-                                           "", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-          }
-          */
-          var yamlValues = YamlSimple.Parser.ParseFile(configYamlPath);
-          var instanceCode = yamlValues.GetConfigStringValue("variables.instance_name");
-          /*
-          if (string.IsNullOrEmpty(instanceCode))
-          {
-            System.Windows.MessageBox.Show(string.Format("В config.yml инстанса '{0}' не указана переменная instance_name", instancePath),
-                                           "", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-          }
-          */
-          var protocol = yamlValues.GetConfigStringValue("variables.protocol");
-          var host = yamlValues.GetConfigStringValue("variables.host_fqdn");
-          var connection = yamlValues.GetConfigStringValue("common_config.CONNECTION_STRING");
-          var dbEngine = yamlValues.GetConfigStringValue("common_config.DATABASE_ENGINE");
-          var dbName = AppHelper.GetDBNameFromConnectionString(dbEngine, connection);
-          if (dbName == "{{ database }}")
-            dbName = yamlValues.GetConfigStringValue("variables.database");
+            var deserializer = new DeserializerBuilder().Build();
+            dynamic ymlData = deserializer.Deserialize<ExpandoObject>(reader.ReadToEnd());
 
-          this.Code = instanceCode;
-          this.ServiceName = $"{Constants.Service}_{instanceCode}";
-          this.DBEngine = dbEngine;
-          this.ServerDB = AppHelper.GetServerFromConnectionString(this.DBEngine, connection);
-          this.DBName = dbName ?? string.Empty;
-          this.Name = yamlValues.GetConfigStringValue("variables.purpose");
-          this.ProjectConfigPath = yamlValues.GetConfigStringValue("variables.project_config_path");
-          this.Port = yamlValues.GetConfigIntValue("variables.http_port") ?? 0;
-          this.URL = AppHelper.GetClientURL(protocol, host, this.Port);
-          this.StoragePath = yamlValues.GetConfigStringValue("variables.home_path");
-          this.SourcesPath = yamlValues.GetConfigStringValue("services_config.DevelopmentStudio.GIT_ROOT_DIRECTORY");
-          if (this.SourcesPath == "{{ home_path_src }}")
-            this.SourcesPath = yamlValues.GetConfigStringValue("variables.home_path_src");
+            var instanceCode = ymlData.variables["instance_name"];
+            var protocol = ymlData.variables["protocol"];
+            var host = ymlData.variables["host_fqdn"];
+            var connection = ymlData.common_config["CONNECTION_STRING"];
+            var dbEngine = ymlData.common_config["DATABASE_ENGINE"];
+            var dbName = AppHelper.GetDBNameFromConnectionString(dbEngine, connection);
+            if (dbName == "{{ database }}")
+              dbName = ymlData.variables["database"];
+            this.DBName = dbName ?? string.Empty;
+
+            this.Code = instanceCode;
+            this.ServiceName = $"{Constants.Service}_{instanceCode}";
+            this.DBEngine = dbEngine;
+            this.Name = ymlData.variables["purpose"];
+            this.ProjectConfigPath = ymlData.variables["project_config_path"];
+            this.Port = Convert.ToInt32(ymlData.variables["http_port"]);
+            this.URL = AppHelper.GetClientURL(protocol, host, this.Port);
+            this.StoragePath = ymlData.variables["home_path"];
+            this.LogFolder = ymlData.logs_path["LOGS_PATH"];
+            if (this.LogFolder.Contains("{{ instance_name }}"))
+            {
+              this.LogFolder = this.LogFolder.Replace("{{ instance_name }}", instanceCode);
+            }
+
+            this.SourcesPath = ymlData.services_config["DevelopmentStudio"]["GIT_ROOT_DIRECTORY"];
+            if (this.SourcesPath == "{{ home_path_src }}")
+              this.SourcesPath = ymlData.variables["home_path_src"];
+
+            var repositories = ymlData.services_config["DevelopmentStudio"]["REPOSITORIES"]["repository"];
+            this.WorkingRepositoryName = String.Empty;
+            foreach (var repository in repositories)
+            {
+              if (repository["@solutionType"] == "Work")
+              {
+                if (String.IsNullOrEmpty(this.WorkingRepositoryName))
+                  this.WorkingRepositoryName = System.IO.Path.Combine(this.SourcesPath, repository["@folderName"]);
+                else
+                {
+                  this.WorkingRepositoryName = this.SourcesPath;
+                  break;
+                }
+              }
+            }
+          }
           this.PlatformVersion = AppHandlers.GetInstancePlatformVersion(instancePath);
           this.SolutionVersion = AppHandlers.GetInstanceSolutionVersion(instancePath);
           this.Status = AppHandlers.GetServiceStatus(this);
           this.ConfigChanged = AppHelper.GetFileChangeTime(configYamlPath);
 
-          using (var reader = new StreamReader(this.ProjectConfigPath))
-          {
-            var deserializer = new DeserializerBuilder().Build();
-            dynamic ymlData = deserializer.Deserialize<ExpandoObject>(reader.ReadToEnd());
-            var repositories = ymlData.services_config["DevelopmentStudio"]["REPOSITORIES"]["repository"];
-            foreach (var repository in repositories)
-            {
-              if (repository["@solutionType"] == "Work")
-              {
-                this.WorkingRepositoryName = repository["@folderName"];
-                break;
-              }
-            }
-          }
         }
       }
       catch (Exception ex)
@@ -120,6 +117,8 @@ namespace RXInstanceManager
     public string SourcesPath { get; set; }
 
     public string WorkingRepositoryName { get; set; }
+
+    public string LogFolder { get; set; }
 
     public string Status { get; set; }
 
