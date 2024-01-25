@@ -581,9 +581,12 @@ namespace RXInstanceManager
                                     string.Format("do db drop"),
                                     true, true);
           Directory.Delete(_instance.StoragePath, true);
-          AppHandlers.LaunchProcess(AppHelper.GetDoPath(_instance.InstancePath),
-                                    string.Format("map set {0} -rundds=False -need_pause", currentProjectConfig),
-                                    true, true);
+
+          string needCheck = "False";
+          if (_configRxInstMan.NeedCheckAfterSet)
+            needCheck = "True";
+          AppHandlers.LaunchProcess(AppHelper.GetDoPath(_instance.InstancePath), string.Format("map set {0} -confirm=False -rundds=False -need_pause -need_check={1}",
+                                    currentProjectConfig, needCheck), true, true);
         }
       }
     }

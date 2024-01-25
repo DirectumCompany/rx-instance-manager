@@ -181,7 +181,7 @@ namespace RXInstanceManager
       ConfigContext.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.ConfigContext);
       ProjectConfigContext.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.ProjectConfigContext);
       ConvertDBsContext.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.ConvertDBsContext);
-      RemoveProjectDataContext.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.RemoveProjectDataContext);
+      RemoveProjectDataContext.Visibility = Visibility.Collapsed; // TODO: отключена, т.к. работает ненадежно isVisibleContextButton(_configRxInstMan.ContextMenu.RemoveProjectDataContext);
       OpenRXFolder.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.OpenRXFolder);
       OpenLogFolder.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.OpenLogFolder);
 
