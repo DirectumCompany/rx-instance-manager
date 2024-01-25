@@ -17,6 +17,7 @@ namespace RXInstanceManager
   {
     internal static Instance _instance;
     public static List<Instance> instances2 = new List<Instance>();
+    internal static Config _configRxInstMan;
 
     #region WPFToTray
     // https://possemeeg.wordpress.com/2007/09/06/minimize-to-tray-icon-in-wpf/
@@ -68,6 +69,7 @@ namespace RXInstanceManager
       if (!Directory.Exists(Constants.LogPath))
         Directory.CreateDirectory(Constants.LogPath);
       Instances.Create();
+      LoadConfig();
       LoadInstances();
       ActionButtonVisibleChanging();
       StartAsyncHandlers();

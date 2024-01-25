@@ -169,6 +169,7 @@
     <Compile Include="Dialogs\InformationDialog.xaml.cs">
       <DependentUpon>InformationDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Entities\Models\Config.cs" />
     <Compile Include="Entities\Models\Solution.cs" />
     <Compile Include="MainWindowAsyncHandlers.cs" />
     <Compile Include="MainWindowHandlers.cs" />

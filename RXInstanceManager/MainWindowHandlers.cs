@@ -5,12 +5,95 @@ using System.IO;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Dynamic;
 
 namespace RXInstanceManager
 {
   public partial class MainWindow : Window
   {
     #region Работа с Grid.
+
+    private void LoadConfig()
+    {
+      string rxInstManConfigFilePath = $"{AppContext.BaseDirectory}rxman.conf";
+
+
+      if (!File.Exists(rxInstManConfigFilePath))
+      {
+        var contextMenu = new ContextMenuClass();
+
+        contextMenu.ChangeProject = true;
+        contextMenu.CreateProject = true;
+        contextMenu.CloneProject = true;
+        contextMenu.UpdateConfig = true;
+        contextMenu.CheckServices = true;
+        contextMenu.RunDDSWithOutDeploy = true;
+        contextMenu.InfoContext = true;
+        contextMenu.CmdAdminContext = true;
+        contextMenu.ClearLogContext = true;
+        contextMenu.ClearLogAllInstancesContext = true;
+        contextMenu.ConfigContext = true;
+        contextMenu.ProjectConfigContext = true;
+        contextMenu.ConvertDBsContext = true;
+        contextMenu.RemoveProjectDataContext = true;
+        contextMenu.RemoveInstance = true;
+        contextMenu.RXFolder = true;
+
+        var config = new Config();
+        config.LogViewer = "";
+        config.NeedCheckAfterSet = false;
+        config.ContextMenu = contextMenu;
+        var serializer = new YamlDotNet.Serialization.SerializerBuilder()
+          .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.CamelCaseNamingConvention.Instance)
+          .Build();
+        var yaml = serializer.Serialize(config);
+        File.WriteAllText(rxInstManConfigFilePath, yaml);
+      }
+
+
+      using (var yamlReader = new StreamReader(rxInstManConfigFilePath))
+      {
+        try
+        {
+          AppHandlers.logger.Info(string.Format("Чтение настроек из {0}", rxInstManConfigFilePath));
+          var deserializer = new YamlDotNet.Serialization.DeserializerBuilder().Build();
+          dynamic ymlData = deserializer.Deserialize<ExpandoObject>(yamlReader.ReadToEnd());
+          _configRxInstMan = new Config();
+          var contextMenu = new ContextMenuClass();
+          _configRxInstMan.ContextMenu = contextMenu;
+          _configRxInstMan.LogViewer = ymlData.logViewer;
+          _configRxInstMan.LogViewerExists = File.Exists(_configRxInstMan.LogViewer);
+          if (!_configRxInstMan.LogViewerExists)
+            AppHandlers.logger.Error(string.Format("Файл LoggerView {0} не найден", _configRxInstMan.LogViewer));
+          _configRxInstMan.NeedCheckAfterSet = (ymlData.needCheckAfterSet == "true") ? true : false;
+
+          Func<string, bool> getContext = (contextMenuItem) => (!ymlData.contextMenu.ContainsKey(contextMenuItem) || ymlData.contextMenu[contextMenuItem] != "true") ? false : true;
+
+          _configRxInstMan.ContextMenu.ChangeProject = getContext("changeProject");
+          _configRxInstMan.ContextMenu.CreateProject = getContext("createProject");
+          _configRxInstMan.ContextMenu.CloneProject = getContext("cloneProject");
+          _configRxInstMan.ContextMenu.UpdateConfig = getContext("updateConfig");
+          _configRxInstMan.ContextMenu.CheckServices = getContext("checkServices");
+          _configRxInstMan.ContextMenu.RunDDSWithOutDeploy = getContext("runDDSWithOutDeploy");
+          _configRxInstMan.ContextMenu.InfoContext = getContext("infoContext");
+          _configRxInstMan.ContextMenu.CmdAdminContext = getContext("cmdAdminContext");
+          _configRxInstMan.ContextMenu.ClearLogContext = getContext("clearLogContext");
+          _configRxInstMan.ContextMenu.ClearLogAllInstancesContext = getContext("clearLogAllInstancesContext");
+          _configRxInstMan.ContextMenu.ConfigContext = getContext("configContext");
+          _configRxInstMan.ContextMenu.ProjectConfigContext = getContext("projectConfigContext");
+          _configRxInstMan.ContextMenu.ConvertDBsContext = getContext("convertDBsContext");
+          _configRxInstMan.ContextMenu.RemoveProjectDataContext = getContext("removeProjectDataContext");
+          _configRxInstMan.ContextMenu.RemoveInstance = getContext("removeInstance");
+          _configRxInstMan.ContextMenu.RXFolder = getContext("rXFolder");
+
+        }
+        catch (Exception ex)
+        {
+          AppHandlers.logger.Error(ex.Message);
+          throw ex;
+        }
+      }
+    }
 
     private void LoadInstances()
     {
@@ -67,9 +150,9 @@ namespace RXInstanceManager
       }
     }
 
-    #endregion
+#endregion
 
-    #region Работа с визуальными эффектами.
+#region Работа с визуальными эффектами.
 
     private void ActionButtonVisibleChanging(string status = null)
     {
@@ -81,20 +164,23 @@ namespace RXInstanceManager
       ButtonSourcesFolder.Visibility = Visibility.Collapsed;
 
       var IsVisibleContextButton = _instance == null || string.IsNullOrEmpty(_instance.Code) ? Visibility.Collapsed : Visibility.Visible;
-      ChangeProject.Visibility = IsVisibleContextButton;
-      CreateProject.Visibility = IsVisibleContextButton;
-      CloneProject.Visibility = IsVisibleContextButton;
-      UpdateConfig.Visibility = IsVisibleContextButton;
-      RunDDSWithOutDeploy.Visibility = IsVisibleContextButton;
-      InfoContext.Visibility = IsVisibleContextButton;
-      CmdAdminContext.Visibility = IsVisibleContextButton;
-      ClearLogContext.Visibility = IsVisibleContextButton;
-      ClearLogAllInstancesContext.Visibility = IsVisibleContextButton;
-      ConfigContext.Visibility = IsVisibleContextButton;
-      ProjectConfigContext.Visibility = IsVisibleContextButton;
-      ConvertDBsContext.Visibility = IsVisibleContextButton;
-      RemoveProjectDataContext.Visibility = IsVisibleContextButton;
-      RXFolder.Visibility = IsVisibleContextButton;
+
+      Func<bool, Visibility> isVisibleContextButton = (need_show) => !need_show || _instance == null || string.IsNullOrEmpty(_instance.Code) ? Visibility.Collapsed : Visibility.Visible;
+      ChangeProject.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.ChangeProject);
+      CreateProject.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.CreateProject);
+      CloneProject.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.CloneProject);
+      UpdateConfig.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.UpdateConfig);
+      CheckServices.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.CheckServices);
+      RunDDSWithOutDeploy.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.RunDDSWithOutDeploy);
+      InfoContext.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.InfoContext);
+      CmdAdminContext.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.CmdAdminContext);
+      ClearLogContext.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.ClearLogContext);
+      ClearLogAllInstancesContext.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.ClearLogAllInstancesContext);
+      ConfigContext.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.ConfigContext);
+      ProjectConfigContext.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.ProjectConfigContext);
+      ConvertDBsContext.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.ConvertDBsContext);
+      RemoveProjectDataContext.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.RemoveProjectDataContext);
+      RXFolder.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.RXFolder);
 
       status = _instance == null || string.IsNullOrEmpty(_instance.Code) ? status : _instance.Status;
         
@@ -119,9 +205,9 @@ namespace RXInstanceManager
       }
     }
 
-    #endregion
+#endregion
 
-    #region Проверки перед выполнением действий.
+#region Проверки перед выполнением действий.
 
     private static bool ValidateBeforeAddInstance(string instancePath)
     {
@@ -282,6 +368,6 @@ namespace RXInstanceManager
       return true;
     }
 
-    #endregion
+#endregion
   }
 }

@@ -16,7 +16,7 @@ namespace RXInstanceManager
 {
   public static class AppHandlers
   {
-    private static Logger logger = LogManager.GetCurrentClassLogger();
+    public static Logger logger = LogManager.GetCurrentClassLogger();
 
 
     #region Работа с конфигом.
