@@ -38,6 +38,7 @@ namespace RXInstanceManager
         contextMenu.RemoveProjectDataContext = true;
         contextMenu.RemoveInstance = true;
         contextMenu.OpenRXFolder = true;
+        contextMenu.OpenLogFolder = true;
 
         var config = new Config();
         config.LogViewer = "";
@@ -85,6 +86,7 @@ namespace RXInstanceManager
           _configRxInstMan.ContextMenu.RemoveProjectDataContext = getContext("removeProjectDataContext");
           _configRxInstMan.ContextMenu.RemoveInstance = getContext("removeInstance");
           _configRxInstMan.ContextMenu.OpenRXFolder = getContext("openRXFolder");
+          _configRxInstMan.ContextMenu.OpenLogFolder = getContext("openLogFolder");
 
         }
         catch (Exception ex)
@@ -181,6 +183,7 @@ namespace RXInstanceManager
       ConvertDBsContext.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.ConvertDBsContext);
       RemoveProjectDataContext.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.RemoveProjectDataContext);
       OpenRXFolder.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.OpenRXFolder);
+      OpenLogFolder.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.OpenLogFolder);
 
       status = _instance == null || string.IsNullOrEmpty(_instance.Code) ? status : _instance.Status;
         

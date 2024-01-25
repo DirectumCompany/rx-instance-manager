@@ -19,12 +19,13 @@ namespace RXInstanceManager
     public bool RemoveProjectDataContext { get; set; } //Удалить БД и домашний каталог выбранного проекта
     public bool RemoveInstance { get; set; } //Убрать инстанс из списка
     public bool OpenRXFolder { get; set; } //Открыть папку инстанса
+    public bool OpenLogFolder { get; set; } //Открыть папку инстанса
   }
 
   public class Config
   {
     public string LogViewer { get; set; }
-    public bool LogViewerExists { get; set; }
+    internal bool LogViewerExists { get; set; }
 
     public bool NeedCheckAfterSet { get; set; }
 
