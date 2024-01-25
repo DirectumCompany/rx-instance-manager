@@ -18,7 +18,7 @@ namespace RXInstanceManager
     public bool ConvertDBsContext { get; set; } //Конвертировать БД проектов
     public bool RemoveProjectDataContext { get; set; } //Удалить БД и домашний каталог выбранного проекта
     public bool RemoveInstance { get; set; } //Убрать инстанс из списка
-    public bool RXFolder { get; set; } //Открыть папку инстанса
+    public bool OpenRXFolder { get; set; } //Открыть папку инстанса
   }
 
   public class Config

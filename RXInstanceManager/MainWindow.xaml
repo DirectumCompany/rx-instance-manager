@@ -66,14 +66,14 @@
             <MenuItem x:Name="RunDDSWithOutDeploy" Header="Открыть DDS без deploy" Click="RunDDSWithOutDeploy_Click" />
             <MenuItem x:Name="InfoContext" Header="Сводка по инстансу" Click="InfoContext_Click" />
             <MenuItem x:Name="CmdAdminContext" Header="Запустить cmd (от администратора)" Click="CmdAdminContext_Click" />
-            <MenuItem x:Name="ClearLogContext" Header="Очистить логи" Click="ClearLogContext_Click" />
-            <MenuItem x:Name="ClearLogAllInstancesContext" Header="Очистить логи всех инстансов" Click="ClearLogAllInstancesContext_Click" />
+            <MenuItem x:Name="ClearLogContext" Header="Очистить логи текущего экземпляра RX" Click="ClearLogContext_Click" />
+            <MenuItem x:Name="ClearLogAllInstancesContext" Header="Очистить логи всех экземпляров RX" Click="ClearLogAllInstancesContext_Click" />
             <MenuItem x:Name="ConfigContext" Header="Открыть config.yml" Click="ConfigContext_Click" />
             <MenuItem x:Name="ProjectConfigContext" Header="Открыть конфиг проекта" Click="ProjectConfigContext_Click" />
             <MenuItem x:Name="ConvertDBsContext" Header="Конвертировать БД проектов" Click="ConvertDBsContext_Click" />
             <MenuItem x:Name="RemoveProjectDataContext" Header="Удалить БД и домашний каталог выбранного проекта" Click="RemoveProjectDataContext_Click" />
-            <MenuItem x:Name="RemoveInstance" Header="Убрать инстанс из списка" Click="RemoveInstance_Click" />
-            <MenuItem x:Name="RXFolder" Header="Открыть папку инстанса" Click="RXFolder_Click" />
+            <MenuItem x:Name="RemoveInstance" Header="Убрать экземпляр RX из списка" Click="RemoveInstance_Click" />
+            <MenuItem x:Name="OpenRXFolder" Header="Открыть папку экземпляра RX" Click="OpenRXFolder_Click" />
           </ContextMenu>
         </DataGrid.ContextMenu>
       </DataGrid>

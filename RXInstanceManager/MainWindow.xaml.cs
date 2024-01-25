@@ -588,7 +588,7 @@ namespace RXInstanceManager
       }
     }
 
-    private void RXFolder_Click(object sender, RoutedEventArgs e)
+    private void OpenRXFolder_Click(object sender, RoutedEventArgs e)
     {
       AppHandlers.LaunchProcess(_instance.InstancePath);
     }

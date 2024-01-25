@@ -15,7 +15,7 @@ namespace RXInstanceManager
 
     private void LoadConfig()
     {
-      string rxInstManConfigFilePath = $"{AppContext.BaseDirectory}rxman.conf";
+      string rxInstManConfigFilePath = $"{AppContext.BaseDirectory}{Constants.RXInstanceManagerConfigFileNane}";
 
 
       if (!File.Exists(rxInstManConfigFilePath))
@@ -37,7 +37,7 @@ namespace RXInstanceManager
         contextMenu.ConvertDBsContext = true;
         contextMenu.RemoveProjectDataContext = true;
         contextMenu.RemoveInstance = true;
-        contextMenu.RXFolder = true;
+        contextMenu.OpenRXFolder = true;
 
         var config = new Config();
         config.LogViewer = "";
@@ -67,7 +67,7 @@ namespace RXInstanceManager
             AppHandlers.logger.Error(string.Format("Файл LoggerView {0} не найден", _configRxInstMan.LogViewer));
           _configRxInstMan.NeedCheckAfterSet = (ymlData.needCheckAfterSet == "true") ? true : false;
 
-          Func<string, bool> getContext = (contextMenuItem) => (!ymlData.contextMenu.ContainsKey(contextMenuItem) || ymlData.contextMenu[contextMenuItem] != "true") ? false : true;
+          Func<string, bool> getContext = (contextMenuItem) => !ymlData.contextMenu.ContainsKey(contextMenuItem) || ymlData.contextMenu[contextMenuItem] == "true" ? true : false;
 
           _configRxInstMan.ContextMenu.ChangeProject = getContext("changeProject");
           _configRxInstMan.ContextMenu.CreateProject = getContext("createProject");
@@ -84,7 +84,7 @@ namespace RXInstanceManager
           _configRxInstMan.ContextMenu.ConvertDBsContext = getContext("convertDBsContext");
           _configRxInstMan.ContextMenu.RemoveProjectDataContext = getContext("removeProjectDataContext");
           _configRxInstMan.ContextMenu.RemoveInstance = getContext("removeInstance");
-          _configRxInstMan.ContextMenu.RXFolder = getContext("rXFolder");
+          _configRxInstMan.ContextMenu.OpenRXFolder = getContext("openRXFolder");
 
         }
         catch (Exception ex)
@@ -180,7 +180,7 @@ namespace RXInstanceManager
       ProjectConfigContext.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.ProjectConfigContext);
       ConvertDBsContext.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.ConvertDBsContext);
       RemoveProjectDataContext.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.RemoveProjectDataContext);
-      RXFolder.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.RXFolder);
+      OpenRXFolder.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.OpenRXFolder);
 
       status = _instance == null || string.IsNullOrEmpty(_instance.Code) ? status : _instance.Status;
         

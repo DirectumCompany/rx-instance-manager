@@ -8,6 +8,8 @@ namespace RXInstanceManager
     public const string Host = "localhost";
     public const string Service = "DirectumRXServiceRunner";
     public const string NullVersion = "0.0.0";
+    public const string RXInstanceManagerConfigFileNane = "rxman.config";
+    public const string InstancesDBFileName = "rxman.yaml";
 
     public static class InstanceStatus
     {
