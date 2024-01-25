@@ -247,9 +247,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <AdditionalFiles Include="readme.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AdditionalFiles>
     <AdditionalFiles Include="App.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </AdditionalFiles>

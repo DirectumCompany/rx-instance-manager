@@ -182,21 +182,6 @@ namespace RXInstanceManager
       }
     }
 
-    private void ButtonInstruction_Click(object sender, RoutedEventArgs e)
-    {
-      AppHandlers.InfoHandler(_instance, MethodBase.GetCurrentMethod().Name);
-
-      try
-      {
-        if (File.Exists("readme.txt"))
-          Dialogs.ShowFileContentDialog("readme.txt");
-      }
-      catch (Exception ex)
-      {
-        AppHandlers.ErrorHandler(_instance, ex);
-      }
-    }
-
     #endregion
 
 
@@ -205,9 +190,6 @@ namespace RXInstanceManager
     private void ConfigContext_Click(object sender, RoutedEventArgs e)
     {
       AppHandlers.InfoHandler(_instance, MethodBase.GetCurrentMethod().Name);
-
-
-
       try
       {
         var configYamlPath = AppHelper.GetConfigYamlPath(_instance.InstancePath);

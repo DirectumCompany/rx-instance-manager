@@ -36,7 +36,6 @@
         <RowDefinition />
       </Grid.RowDefinitions>
       <StackPanel Orientation="Horizontal" Height="40" Grid.Row="0">
-        <Button x:Name="ButtonInstruction" Content="Инструкция" Style="{DynamicResource RecordActionButton}" Background="DimGray" Click="ButtonInstruction_Click" />
         <Button x:Name="ButtonAdd" Content="Добавить" Style="{DynamicResource RecordActionButton}" Margin="10,5,5,5" Background="SkyBlue" Click="ButtonAdd_Click" />
         <Button x:Name="ButtonStart" Content="do all up" Style="{DynamicResource RecordActionButton}" Background="SteelBlue" Click="ButtonStart_Click" />
         <Button x:Name="ButtonStop" Content="do all down" Style="{DynamicResource RecordActionButton}" Background="SteelBlue" Click="ButtonStop_Click" />
