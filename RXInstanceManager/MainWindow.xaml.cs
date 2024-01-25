@@ -5,8 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Reflection;
 using System.Windows.Forms;
-
-
+using System.Threading.Tasks;
 
 namespace RXInstanceManager
 {
@@ -32,7 +31,7 @@ namespace RXInstanceManager
     private WindowState m_storedWindowState = WindowState.Normal;
     void OnStateChanged(object sender, EventArgs args)
     {
-      if (WindowState == WindowState.Minimized)
+      if (WindowState == WindowState.Minimized && !Properties.Settings.Default.DisableMinimizeToTray)
       {
         Hide();
         if (m_notifyIcon != null)
@@ -78,6 +77,7 @@ namespace RXInstanceManager
       m_notifyIcon.Text = "RXInstanceManager";
       m_notifyIcon.Icon = new System.Drawing.Icon("App.ico");
       m_notifyIcon.Click += new EventHandler(m_notifyIcon_Click);
+      TrayStatus();
     }
 
     private void GridInstances_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -371,7 +371,7 @@ namespace RXInstanceManager
 
       try
       {
-        AppHandlers.ExecuteCmdCommand($"cd /d {_instance.InstancePath}", true);
+        Task.Run(() => AppHandlers.ExecuteCmdCommand($"cd /d {_instance.InstancePath}", true));
       }
       catch (Exception ex)
       {
@@ -408,12 +408,26 @@ namespace RXInstanceManager
 
       try
       {
-        AppHandlers.LaunchProcess(AppHelper.GetDoPath(_instance.InstancePath), "map current -need_pause", true, true);
+        Task.Run(() => AppHandlers.LaunchProcess(AppHelper.GetDoPath(_instance.InstancePath), "map current -need_pause", true, true));
       }
       catch (Exception ex)
       {
         AppHandlers.ErrorHandler(_instance, ex);
       }
+    }
+
+    private void ButtonDisableMinimizeToTray_Click(object sender, RoutedEventArgs e)
+    {
+      if (Properties.Settings.Default.DisableMinimizeToTray)
+      {
+        Properties.Settings.Default.DisableMinimizeToTray = false;
+      }
+      else
+      {
+        Properties.Settings.Default.DisableMinimizeToTray = true;
+      }
+      Properties.Settings.Default.Save();
+      TrayStatus();
     }
 
     private void ButtonLogsFolder_Click(object sender, RoutedEventArgs e)
@@ -427,6 +441,11 @@ namespace RXInstanceManager
         logs_folder = logs_folder.Replace("{{ instance_name }}", instance_name);
       }
       AppHandlers.LaunchProcess(logs_folder);
+    }
+
+    private void ButtonSourcesFolder_Click(object sender, RoutedEventArgs e)
+    {
+      AppHandlers.LaunchProcess(_instance.SourcesPath + $"//{_instance.WorkingRepositoryName}");
     }
 
     private void ClearLogAllInstancesContext_Click(object sender, RoutedEventArgs e)
@@ -564,6 +583,23 @@ namespace RXInstanceManager
                                     string.Format("map set {0} -rundds=False -need_pause", currentProjectConfig),
                                     true, true);
         }
+      }
+    }
+
+    private void RXFolder_Click(object sender, RoutedEventArgs e)
+    {
+      AppHandlers.LaunchProcess(_instance.InstancePath);
+    }
+
+    private void TrayStatus()
+    {
+      if (Properties.Settings.Default.DisableMinimizeToTray)
+      {
+        ButtonDisableMinimizeToTray.Content = "Tray\nis off";
+      }
+      else
+      {
+        ButtonDisableMinimizeToTray.Content = "Tray\nis on";
       }
     }
   }

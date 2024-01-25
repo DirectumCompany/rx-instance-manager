@@ -3,6 +3,8 @@ using System.Linq;
 using System.IO;
 using System.Windows;
 using System.Threading.Tasks;
+using System.Dynamic;
+using YamlDotNet.Serialization;
 
 namespace RXInstanceManager
 {
@@ -66,6 +68,21 @@ namespace RXInstanceManager
               instance.PlatformVersion = AppHandlers.GetInstancePlatformVersion(instance.InstancePath);
               instance.SolutionVersion = AppHandlers.GetInstanceSolutionVersion(instance.InstancePath);
 
+              using (var reader = new StreamReader(inst.ProjectConfigPath))
+              {
+                var deserializer = new DeserializerBuilder().Build();
+                dynamic ymlData = deserializer.Deserialize<ExpandoObject>(reader.ReadToEnd());
+                var repositories = ymlData.services_config["DevelopmentStudio"]["REPOSITORIES"]["repository"];
+                foreach (var repository in repositories)
+                {
+                  if (repository["@solutionType"] == "Work")
+                  {
+                    instance.WorkingRepositoryName = repository["@folderName"];
+                    break;
+                  }
+                }
+              }
+
               instance.Status = AppHandlers.GetServiceStatus(instance);
               instance.ConfigChanged = changeTime;
 
@@ -86,9 +103,8 @@ namespace RXInstanceManager
             instance.PlatformVersion = string.Empty;
             instance.SolutionVersion = string.Empty;
             instance.Status = Constants.InstanceStatus.NotInstalled;
-            
+            instance.WorkingRepositoryName = string.Empty;
           }
-
         }
       }
     }
