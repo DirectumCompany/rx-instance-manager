@@ -254,7 +254,7 @@ namespace RXInstanceManager
           var config_filename = openFileDialog.FileName;
           try
           {
-            AppHandlers.LaunchProcess(AppHelper.GetDoPath(_instance.InstancePath), string.Format("map set {0} -rundds=False -need_pause", config_filename), true, true);
+            AppHandlers.LaunchProcess(AppHelper.GetDoPath(_instance.InstancePath), string.Format("map set {0} -rundds=False -need_pause -need_check=False", config_filename), true, true);
           }
           catch (Exception ex)
           {
