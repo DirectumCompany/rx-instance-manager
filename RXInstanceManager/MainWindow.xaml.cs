@@ -281,7 +281,10 @@ namespace RXInstanceManager
           var config_filename = openFileDialog.FileName;
           try
           {
-            AppHandlers.LaunchProcess(AppHelper.GetDoPath(_instance.InstancePath), string.Format("map create_project {0} -rundds=False -need_pause", config_filename), true, true);
+            AppHandlers.LaunchProcess("cmd",
+                                      string.Format("cmd /K {1} map create_project {0} -rundds=False -need_pause",
+                                      config_filename, AppHelper.GetDoPath(_instance.InstancePath)),
+                                      true, true);
           }
           catch (Exception ex)
           {
@@ -536,8 +539,9 @@ namespace RXInstanceManager
           var config_filename = openFileDialog.FileName;
           try
           {
-            AppHandlers.LaunchProcess(AppHelper.GetDoPath(_instance.InstancePath),
-                                      string.Format("map clone_project {0} {1} -rundds=False -need_pause", _instance.ProjectConfigPath, config_filename),
+            AppHandlers.LaunchProcess("cmd",
+                                      string.Format("cmd /K {2} map clone_project {0} {1} -rundds=False -need_pause",
+                                      _instance.ProjectConfigPath, config_filename, AppHelper.GetDoPath(_instance.InstancePath)),
                                       true, true);
           }
           catch (Exception ex)
