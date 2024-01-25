@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Reflection;
 using System.Windows.Forms;
 using System.Threading.Tasks;
+using Microsoft.Win32;
 
 namespace RXInstanceManager
 {
@@ -435,10 +436,24 @@ namespace RXInstanceManager
       TrayStatus();
     }
 
-    private void ButtonLogsFolder_Click(object sender, RoutedEventArgs e)
+    private void RunDirectumLogViewer_Click(object sender, RoutedEventArgs e)
     {
       if (Directory.Exists(_instance.LogFolder))
-        AppHandlers.LaunchProcess(_instance.LogFolder);
+      {
+        try
+        {
+          using (var regKey = Registry.CurrentUser.OpenSubKey(@"Software\JsonLogViewerSettings", false))
+          {
+            if (regKey != null && (string)regKey.GetValue("LogsPath") != _instance.LogFolder)
+              AppHandlers.ExecuteCmdCommands(true, false, "REG ADD HKCU\\Software\\JsonLogViewerSettings /v LogsPath /t REG_SZ /d \"" + _instance.LogFolder + "\" /f");
+          }
+          AppHandlers.LaunchProcess(_configRxInstMan.LogViewer);
+        }
+        catch (Exception ex)
+        {
+          AppHandlers.ErrorHandler(_instance, ex);
+        }
+      }
       else
         System.Windows.MessageBox.Show($"Папка {_instance.LogFolder} не существует.", "", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
     }
@@ -624,6 +639,14 @@ namespace RXInstanceManager
         AppHandlers.ErrorHandler(_instance, ex);
       }
 
+    }
+
+    private void OpenLogFolder_Click(object sender, RoutedEventArgs e)
+    {
+      if (Directory.Exists(_instance.LogFolder))
+        AppHandlers.LaunchProcess(_instance.LogFolder);
+      else
+        System.Windows.MessageBox.Show($"Папка {_instance.LogFolder} не существует.", "", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
     }
   }
 }

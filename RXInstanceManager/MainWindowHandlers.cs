@@ -64,7 +64,7 @@ namespace RXInstanceManager
           _configRxInstMan.LogViewer = ymlData.logViewer;
           _configRxInstMan.LogViewerExists = File.Exists(_configRxInstMan.LogViewer);
           if (!_configRxInstMan.LogViewerExists)
-            AppHandlers.logger.Error(string.Format("Файл LoggerView {0} не найден", _configRxInstMan.LogViewer));
+            AppHandlers.logger.Error(string.Format("Файл LogViewer {0} не найден", _configRxInstMan.LogViewer));
           _configRxInstMan.NeedCheckAfterSet = (ymlData.needCheckAfterSet == "true") ? true : false;
 
           Func<string, bool> getContext = (contextMenuItem) => !ymlData.contextMenu.ContainsKey(contextMenuItem) || ymlData.contextMenu[contextMenuItem] == "true" ? true : false;
@@ -160,7 +160,7 @@ namespace RXInstanceManager
       ButtonStop.Visibility = Visibility.Collapsed;
       ButtonDDSStart.Visibility = Visibility.Collapsed;
       ButtonRXStart.Visibility = Visibility.Collapsed;
-      ButtonLogsFolder.Visibility = Visibility.Collapsed;
+      ButtonLogViewer.Visibility = Visibility.Collapsed;
       ButtonSourcesFolder.Visibility = Visibility.Collapsed;
 
       var IsVisibleContextButton = _instance == null || string.IsNullOrEmpty(_instance.Code) ? Visibility.Collapsed : Visibility.Visible;
@@ -191,7 +191,10 @@ namespace RXInstanceManager
           ButtonRXStart.Visibility = Visibility.Collapsed;
           ButtonStop.Visibility = Visibility.Collapsed;
           ButtonStart.Visibility = Visibility.Visible;
-          ButtonLogsFolder.Visibility = Visibility.Visible;
+          if (_configRxInstMan.LogViewerExists)
+            ButtonLogViewer.Visibility = Visibility.Visible;
+          else
+            ButtonLogViewer.Visibility = Visibility.Collapsed;
           ButtonSourcesFolder.Visibility = Visibility.Visible;
           break;
         case Constants.InstanceStatus.Working:
@@ -199,7 +202,10 @@ namespace RXInstanceManager
           ButtonRXStart.Visibility = Visibility.Visible;
           ButtonStop.Visibility = Visibility.Visible;
           ButtonStart.Visibility = Visibility.Collapsed;
-          ButtonLogsFolder.Visibility = Visibility.Visible;
+          if (_configRxInstMan.LogViewerExists)
+            ButtonLogViewer.Visibility = Visibility.Visible;
+          else
+            ButtonLogViewer.Visibility = Visibility.Collapsed;
           ButtonSourcesFolder.Visibility = Visibility.Visible;
           break;
       }
