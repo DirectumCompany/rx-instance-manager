@@ -24,7 +24,7 @@
       <RowDefinition />
       <RowDefinition Height="30" />
     </Grid.RowDefinitions>
-    <Button x:Name="HiddenButton" Grid.Column="0" Grid.Row="0" Width="150" Background="#222b34" Click="HiddenButton_Click" />
+    <Button x:Name="HiddenButton" Content="info" Grid.Column="0" Grid.Row="0" Width="40" Background="#5b5f6a" Click="HiddenButton_Click" />
     <Button x:Name="ButtonDisableMinimizeToTray" Grid.Column="3" Grid.Row="0" Width="40" Background="#5b5f6a" Click="ButtonDisableMinimizeToTray_Click" />
     <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="1" Style="{DynamicResource HeaderStackPanel}"/>
     <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Style="{DynamicResource HeaderStackPanel}"/>
@@ -43,7 +43,7 @@
         <Button x:Name="ButtonDDSStart" Content="Development Studio" Style="{DynamicResource RecordActionButton}" Background="GreenYellow" Click="ButtonDDSStart_Click" />
         <Button x:Name="ButtonRXStart" Content="Веб-клиент" Style="{DynamicResource RecordActionButton}" Background="Violet" Click="ButtonRXStart_Click" />
         <Button x:Name="ButtonLogsFolder" Content="Папка логов" Style="{DynamicResource RecordActionButton}" Background="Gray" Click="ButtonLogsFolder_Click" />
-        <Button x:Name="ButtonSourcesFolder" Content="Папка источников" Style="{DynamicResource RecordActionButton}" Background="#FFDCA3FF" Click="ButtonSourcesFolder_Click" />
+        <Button x:Name="ButtonSourcesFolder" Content="Папка исходников" Style="{DynamicResource RecordActionButton}" Background="#FFDCA3FF" Click="ButtonSourcesFolder_Click" />
       </StackPanel>
       <DataGrid x:Name="GridInstances" AutoGenerateColumns="False" Style="{DynamicResource DataGridStyle}" Grid.Row="1" SelectionChanged="GridInstances_SelectionChanged" >
         <DataGrid.Columns>
