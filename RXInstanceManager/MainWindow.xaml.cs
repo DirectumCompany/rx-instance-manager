@@ -602,5 +602,26 @@ namespace RXInstanceManager
         ButtonDisableMinimizeToTray.Content = "Tray\nis on";
       }
     }
+
+    private void CheckServices_Click(object sender, RoutedEventArgs e)
+    {
+
+      if (_instance == null)
+        return;
+
+      try
+      {
+
+        Task.Run(() => AppHandlers.LaunchProcess("cmd",
+                                  string.Format("cmd /K {0} all check",
+                                  AppHelper.GetDoPath(_instance.InstancePath)),
+                                  true, true));
+      }
+      catch (Exception ex)
+      {
+        AppHandlers.ErrorHandler(_instance, ex);
+      }
+
+    }
   }
 }
