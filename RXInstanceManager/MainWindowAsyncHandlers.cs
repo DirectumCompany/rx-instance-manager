@@ -20,6 +20,9 @@ namespace RXInstanceManager
         {
           if (!string.IsNullOrEmpty(instance.Code))
           {
+            if (instance.Status == Constants.InstanceStatus.Update)
+              continue;
+
             var status = AppHandlers.GetServiceStatus(instance);
             if (status != instance.Status)
               LoadInstances(_instance.InstancePath);
@@ -92,7 +95,9 @@ namespace RXInstanceManager
                     }
                   }
                 }
-                instance.Status = AppHandlers.GetServiceStatus(instance);
+                if (instance.Status != Constants.InstanceStatus.Update)
+                  instance.Status = AppHandlers.GetServiceStatus(instance);
+
                 instance.ConfigChanged = changeTime;
 
                 LoadInstances(_instance.InstancePath);

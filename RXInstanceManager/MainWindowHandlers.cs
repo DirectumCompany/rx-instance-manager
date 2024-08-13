@@ -156,8 +156,22 @@ namespace RXInstanceManager
 
 #region Работа с визуальными эффектами.
 
-    private void ActionButtonVisibleChanging(string status = null)
+    private void ActionButtonVisibleChanging(string status = null, Instance instance = null)
     {
+      if (instance == null)
+        instance = _instance;
+
+      ButtonDDSStart.IsEnabled = true;
+      ButtonStop.IsEnabled = true;
+      ButtonStart.IsEnabled = true;
+      ChangeProject.IsEnabled = true;
+      CreateProject.IsEnabled = true;
+      CloneProject.IsEnabled = true;
+      UpdateConfig.IsEnabled = true;
+      RunDDSWithOutDeploy.IsEnabled = true;
+      ConvertDBsContext.IsEnabled = true;
+
+
       ButtonStart.Visibility = Visibility.Collapsed;
       ButtonStop.Visibility = Visibility.Collapsed;
       ButtonDDSStart.Visibility = Visibility.Collapsed;
@@ -165,9 +179,9 @@ namespace RXInstanceManager
       ButtonLogViewer.Visibility = Visibility.Collapsed;
       ButtonSourcesFolder.Visibility = Visibility.Collapsed;
 
-      var IsVisibleContextButton = _instance == null || string.IsNullOrEmpty(_instance.Code) ? Visibility.Collapsed : Visibility.Visible;
+      var IsVisibleContextButton = instance == null || string.IsNullOrEmpty(instance.Code) ? Visibility.Collapsed : Visibility.Visible;
 
-      Func<bool, Visibility> isVisibleContextButton = (need_show) => !need_show || _instance == null || string.IsNullOrEmpty(_instance.Code) ? Visibility.Collapsed : Visibility.Visible;
+      Func<bool, Visibility> isVisibleContextButton = (need_show) => !need_show || instance == null || string.IsNullOrEmpty(instance.Code) ? Visibility.Collapsed : Visibility.Visible;
       ChangeProject.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.ChangeProject);
       CreateProject.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.CreateProject);
       CloneProject.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.CloneProject);
@@ -185,7 +199,7 @@ namespace RXInstanceManager
       OpenRXFolder.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.OpenRXFolder);
       OpenLogFolder.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.OpenLogFolder);
 
-      status = _instance == null || string.IsNullOrEmpty(_instance.Code) ? status : _instance.Status;
+      status = instance == null || string.IsNullOrEmpty(instance.Code) ? status : instance.Status;
         
       switch (status)
       {
@@ -210,6 +224,27 @@ namespace RXInstanceManager
           else
             ButtonLogViewer.Visibility = Visibility.Collapsed;
           ButtonSourcesFolder.Visibility = Visibility.Visible;
+          break;
+        case Constants.InstanceStatus.Update:
+          ButtonDDSStart.Visibility = Visibility.Visible;
+          ButtonDDSStart.IsEnabled = false;
+          ButtonRXStart.Visibility = Visibility.Visible;
+          ButtonStop.Visibility = Visibility.Visible;
+          ButtonStop.IsEnabled = false;
+          ButtonStart.Visibility = Visibility.Collapsed;
+          ButtonSourcesFolder.Visibility = Visibility.Visible;
+          if (_configRxInstMan.LogViewerExists)
+            ButtonLogViewer.Visibility = Visibility.Visible;
+          else
+            ButtonLogViewer.Visibility = Visibility.Collapsed;
+
+          ButtonStart.IsEnabled = false;
+          ChangeProject.IsEnabled = false;
+          CreateProject.IsEnabled = false;
+          CloneProject.IsEnabled = false;
+          UpdateConfig.IsEnabled = false;
+          RunDDSWithOutDeploy.IsEnabled = false;
+          ConvertDBsContext.IsEnabled = false;
           break;
       }
     }
