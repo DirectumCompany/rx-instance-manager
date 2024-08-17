@@ -80,6 +80,12 @@ namespace RXInstanceManager
       m_notifyIcon.Icon = new System.Drawing.Icon("App.ico");
       m_notifyIcon.Click += new EventHandler(m_notifyIcon_Click);
       TrayStatus();
+      Loaded += MainWindow_Loaded;
+    }
+
+    private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+      await StartAsyncHandlers();
     }
 
     private void GridInstances_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -401,7 +407,7 @@ namespace RXInstanceManager
       if (_instance == null)
         return;
 
-      Dialogs.ShowInformationDialog(_instance.ToString());
+      Dialogs.ShowInformation(_instance.ToString());
     }
 
     #endregion
@@ -663,12 +669,6 @@ namespace RXInstanceManager
       instance.Status = status;
       ActionButtonVisibleChanging(instance: instance);
       LoadInstances(instance.InstancePath);
-    }
-
-    protected override void OnClosed(EventArgs e)
-    {
-      App.Current.Shutdown();
-      base.OnClosed(e);
     }
   }
 }

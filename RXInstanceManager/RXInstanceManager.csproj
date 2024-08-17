@@ -163,7 +163,6 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="AppHandlers.cs" />
-    <Compile Include="App.cs" />
     <Compile Include="Dialogs\EnterValueDialog.xaml.cs">
       <DependentUpon>EnterValueDialog.xaml</DependentUpon>
     </Compile>
