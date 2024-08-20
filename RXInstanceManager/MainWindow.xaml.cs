@@ -412,7 +412,7 @@ namespace RXInstanceManager
 
     #endregion
 
-    public void StartAsyncHandlers()
+    private void StartAsyncHandlers()
     {
       _ = UpdateInstanceGridAsync();
       _ = UpdateInstanceDataAsync();
