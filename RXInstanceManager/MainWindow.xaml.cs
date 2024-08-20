@@ -83,9 +83,9 @@ namespace RXInstanceManager
       Loaded += MainWindow_Loaded;
     }
 
-    private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
-      await StartAsyncHandlers();
+      StartAsyncHandlers();
     }
 
     private void GridInstances_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -412,10 +412,10 @@ namespace RXInstanceManager
 
     #endregion
 
-    public async Task StartAsyncHandlers()
+    public void StartAsyncHandlers()
     {
-      await UpdateInstanceGridAsync();
-      await UpdateInstanceDataAsync();
+      _ = UpdateInstanceGridAsync();
+      _ = UpdateInstanceDataAsync();
     }
 
     private void HiddenButton_Click(object sender, RoutedEventArgs e)

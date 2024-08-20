@@ -25,7 +25,10 @@ namespace RXInstanceManager
 
             var status = AppHandlers.GetServiceStatus(instance);
             if (status != instance.Status)
-              LoadInstances(_instance.InstancePath);
+            {
+              instance.Status = status;
+              LoadInstances(instance.InstancePath);
+            }
           }
         }
       }
