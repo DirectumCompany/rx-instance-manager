@@ -42,6 +42,7 @@ namespace RXInstanceManager
 
         var config = new Config();
         config.LogViewer = "";
+        config.MetadataBrowser = "";
         config.NeedCheckAfterSet = false;
         config.ContextMenu = contextMenu;
         var serializer = new YamlDotNet.Serialization.SerializerBuilder()
@@ -66,6 +67,20 @@ namespace RXInstanceManager
           _configRxInstMan.LogViewerExists = File.Exists(_configRxInstMan.LogViewer);
           if (!_configRxInstMan.LogViewerExists)
             AppHandlers.logger.Error(string.Format("Файл LogViewer {0} не найден", _configRxInstMan.LogViewer));
+          try
+          {
+            _configRxInstMan.MetadataBrowser = ymlData.metadataBrowser;
+          }
+          catch (Exception e)
+          {
+            if (Environment.UserDomainName == "NT_WORK")
+              _configRxInstMan.MetadataBrowser = "\\\\orpihost\\MetadataBrowser\\MetadataBrowser.exe";
+            else
+              _configRxInstMan.MetadataBrowser = "";
+          }
+          _configRxInstMan.MetadataBrowserExists = File.Exists(_configRxInstMan.MetadataBrowser);
+          if (!_configRxInstMan.MetadataBrowserExists)
+            AppHandlers.logger.Error(string.Format("Файл MetadataBrowser {0} не найден", _configRxInstMan.MetadataBrowser));
           _configRxInstMan.NeedCheckAfterSet = (ymlData.needCheckAfterSet == "true") ? true : false;
 
           Func<string, bool> getContext = (contextMenuItem) => !ymlData.contextMenu.ContainsKey(contextMenuItem) || ymlData.contextMenu[contextMenuItem] == "true" ? true : false;
@@ -198,6 +213,10 @@ namespace RXInstanceManager
             ButtonLogViewer.Visibility = Visibility.Visible;
           else
             ButtonLogViewer.Visibility = Visibility.Collapsed;
+          if (_configRxInstMan.MetadataBrowserExists)
+            ButtonMetadataBrowser.Visibility = Visibility.Visible;
+          else
+            ButtonMetadataBrowser.Visibility = Visibility.Collapsed;
           ButtonSourcesFolder.Visibility = Visibility.Visible;
           break;
         case Constants.InstanceStatus.Working:
@@ -209,6 +228,10 @@ namespace RXInstanceManager
             ButtonLogViewer.Visibility = Visibility.Visible;
           else
             ButtonLogViewer.Visibility = Visibility.Collapsed;
+          if (_configRxInstMan.MetadataBrowserExists)
+            ButtonMetadataBrowser.Visibility = Visibility.Visible;
+          else
+            ButtonMetadataBrowser.Visibility = Visibility.Collapsed;
           ButtonSourcesFolder.Visibility = Visibility.Visible;
           break;
       }

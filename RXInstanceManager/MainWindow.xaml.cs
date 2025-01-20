@@ -448,9 +448,10 @@ namespace RXInstanceManager
       if (_instance == null)
         return;
 
+      if (File.Exists(_configRxInstMan.MetadataBrowser))
       try
       {
-        Task.Run(() => AppHandlers.LaunchProcess(AppHelper.GetDoPath(_instance.InstancePath), "map run_metadata_browser", true, false, true));
+        Task.Run(() => AppHandlers.LaunchProcess(AppHelper.GetDoPath(_instance.InstancePath), "map run_metadata_browser " + _configRxInstMan.MetadataBrowser, true, false, true));
       }
       catch (Exception ex)
       {
