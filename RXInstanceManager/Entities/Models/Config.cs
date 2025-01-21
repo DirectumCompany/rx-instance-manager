@@ -27,6 +27,10 @@ namespace RXInstanceManager
     public string LogViewer { get; set; }
     internal bool LogViewerExists { get; set; }
 
+    public string MetadataBrowser { get; set; }
+
+    internal bool MetadataBrowserExists { get; set; }
+
     public bool NeedCheckAfterSet { get; set; }
 
     public ContextMenuClass ContextMenu { get; set; }
