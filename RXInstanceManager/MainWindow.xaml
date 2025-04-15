@@ -37,8 +37,8 @@
       </Grid.RowDefinitions>
       <StackPanel Orientation="Horizontal" Height="40" Grid.Row="0">
         <Button x:Name="ButtonAdd" Content="Добавить" Style="{DynamicResource RecordActionButton}" Margin="10,5,5,5" Background="SkyBlue" Click="ButtonAdd_Click" />
-        <Button x:Name="ButtonStart" Content="do all up" Style="{DynamicResource RecordActionButton}" Background="SteelBlue" Click="ButtonStart_Click" />
-        <Button x:Name="ButtonStop" Content="do all down" Style="{DynamicResource RecordActionButton}" Background="SteelBlue" Click="ButtonStop_Click" />
+        <Button x:Name="ButtonStart" Content="do all up" Style="{DynamicResource RecordActionButton}" Background="SteelBlue" Click="ButtonStart_ClickAsync" />
+        <Button x:Name="ButtonStop" Content="do all down" Style="{DynamicResource RecordActionButton}" Background="SteelBlue" Click="ButtonStop_ClickAsync" />
         <Button x:Name="ButtonDDSStart" Content="Development Studio" Style="{DynamicResource RecordActionButton}" Background="GreenYellow" Click="ButtonDDSStart_Click" />
         <Button x:Name="ButtonRXStart" Content="Веб-клиент" Style="{DynamicResource RecordActionButton}" Background="Violet" Click="ButtonRXStart_Click" />
         <Button x:Name="ButtonLogViewer" Content="Directum LogViewer" Style="{DynamicResource RecordActionButton}" Background="Gray" Click="RunDirectumLogViewer_Click" />
@@ -57,14 +57,14 @@
         </DataGrid.Columns>
         <DataGrid.ContextMenu>
           <ContextMenu x:Name="InstancesContextMenu">
-            <MenuItem x:Name="ChangeProject" Header="Сменить проект" Click="ChangeProject_Click" />
-            <MenuItem x:Name="CreateProject" Header="Создать проект" Click="CreateProject_Click" />
+            <MenuItem x:Name="ChangeProject" Header="Сменить проект" Click="ChangeProject_ClickAsync" />
+            <MenuItem x:Name="CreateProject" Header="Создать проект" Click="CreateProject_ClickAsync" />
             <MenuItem x:Name="CloneProject" Header="Создать копию текущего проекта" Click="CloneProject_Click" />
             <MenuItem x:Name="UpdateConfig" Header="Пропатчить config.yml" Click="UpdateConfig_Click" />
             <MenuItem x:Name="CheckServices" Header="Проверить сервисы" Click="CheckServices_Click" />
             <MenuItem x:Name="RunDDSWithOutDeploy" Header="Открыть DDS без deploy" Click="RunDDSWithOutDeploy_Click" />
             <MenuItem x:Name="InfoContext" Header="Сводка по инстансу" Click="InfoContext_Click" />
-            <MenuItem x:Name="CmdAdminContext" Header="Запустить cmd (от администратора)" Click="CmdAdminContext_Click" />
+            <MenuItem x:Name="CmdAdminContext" Header="Запустить cmd (от администратора)" Icon="🖥️" Click="CmdAdminContext_Click" />
             <MenuItem x:Name="ClearLogContext" Header="Очистить логи текущего экземпляра RX" Click="ClearLogContext_Click" />
             <MenuItem x:Name="ClearLogAllInstancesContext" Header="Очистить логи всех экземпляров RX" Click="ClearLogAllInstancesContext_Click" />
             <MenuItem x:Name="ConfigContext" Header="Открыть config.yml" Click="ConfigContext_Click" />
@@ -72,7 +72,7 @@
             <MenuItem x:Name="ConvertDBsContext" Header="Конвертировать БД проектов" Click="ConvertDBsContext_Click" />
             <MenuItem x:Name="RemoveProjectDataContext" Header="Удалить БД и домашний каталог выбранного проекта" Click="RemoveProjectDataContext_Click" />
             <MenuItem x:Name="RemoveInstance" Header="Убрать экземпляр RX из списка" Click="RemoveInstance_Click" />
-            <MenuItem x:Name="OpenRXFolder" Header="Открыть папку экземпляра RX" Click="OpenRXFolder_Click" />
+            <MenuItem x:Name="OpenRXFolder" Header="Открыть папку экземпляра RX" Icon="📁" Click="OpenRXFolder_Click" />
             <MenuItem x:Name="OpenLogFolder" Header="Открыть папку логов" Click="OpenLogFolder_Click" />
           </ContextMenu>
         </DataGrid.ContextMenu>

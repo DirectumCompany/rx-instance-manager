@@ -19,11 +19,11 @@ namespace RXInstanceManager
       return dialog.Value;
     }
 
-    public static void ShowInformationDialog(string information)
+    public static void ShowInformation(string information)
     {
       var dialog = new InformationDialog();
       dialog.Value = information;
-      dialog.ShowDialog();
+      dialog.Show();
     }
     public static void ShowFileContentDialog(string path)
     {

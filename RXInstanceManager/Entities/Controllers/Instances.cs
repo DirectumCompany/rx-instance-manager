@@ -33,6 +33,7 @@ namespace RXInstanceManager
     {
       if (!Instances.instancesFolders.Where(i => i == instancePath).Any())
       {
+        Instances.instances.Add(new Instance(instancePath));
         Instances.instancesFolders.Add(instancePath);
         UpdateYaml();
       }
@@ -40,16 +41,21 @@ namespace RXInstanceManager
 
     public static List<Instance> Get()
     {
-      Instances.instances = new List<Instance>();
-      foreach (var folder in Instances.instancesFolders)
-        Instances.instances.Add(new Instance(folder));
-      return Instances.instances;
+      if (instances == null)
+      {
+        instances = new List<Instance>();
+        foreach (var folder in instancesFolders)
+          instances.Add(new Instance(folder));
+      }
+
+      return instances;
     }
 
     public static void Delete(Instance instance)
     {
-      var idx = Instances.instancesFolders.FindIndex(i => i == instance.InstancePath);
-      Instances.instancesFolders.RemoveAt(idx);
+      var index = Instances.instancesFolders.FindIndex(i => i == instance.InstancePath);
+      Instances.instances.RemoveAt(index);
+      Instances.instancesFolders.RemoveAt(index);
       UpdateYaml();
     }
 

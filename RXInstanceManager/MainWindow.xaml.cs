@@ -73,7 +73,6 @@ namespace RXInstanceManager
       LoadConfig();
       LoadInstances();
       ActionButtonVisibleChanging();
-      StartAsyncHandlers();
       m_notifyIcon = new System.Windows.Forms.NotifyIcon();
       m_notifyIcon.BalloonTipText = "The app has been minimised. Click the tray icon to show.";
       m_notifyIcon.BalloonTipTitle = "RXInstanceManager";
@@ -81,6 +80,12 @@ namespace RXInstanceManager
       m_notifyIcon.Icon = new System.Drawing.Icon("App.ico");
       m_notifyIcon.Click += new EventHandler(m_notifyIcon_Click);
       TrayStatus();
+      Loaded += MainWindow_Loaded;
+    }
+
+    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+      StartAsyncHandlers();
     }
 
     private void GridInstances_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -95,41 +100,53 @@ namespace RXInstanceManager
 
     #region ActionHandlers
 
-    private void ButtonStart_Click(object sender, RoutedEventArgs e)
+    private async void ButtonStart_ClickAsync(object sender, RoutedEventArgs e)
     {
-      AppHandlers.InfoHandler(_instance, MethodBase.GetCurrentMethod().Name);
+      var instance = _instance;
+      AppHandlers.InfoHandler(instance, MethodBase.GetCurrentMethod().Name);
 
-      if (_instance == null)
+      if (instance == null)
         return;
 
       try
       {
-        var serviceStatus = AppHandlers.GetServiceStatus(_instance);
+        var serviceStatus = AppHandlers.GetServiceStatus(instance);
         if (serviceStatus == Constants.InstanceStatus.Stopped)
-          AppHandlers.LaunchProcess(AppHelper.GetDoPath(_instance.InstancePath), "all up", true, true);
+        {
+          ChangeGridStatus(instance, Constants.InstanceStatus.Update);
+          await Task.Run(() => AppHandlers.LaunchProcess(AppHelper.GetDoPath(instance.InstancePath), "all up", true, true));
+          ChangeGridStatus(instance, Constants.InstanceStatus.Working);
+        }
       }
       catch (Exception ex)
       {
-        AppHandlers.ErrorHandler(_instance, ex);
+        ChangeGridStatus(instance, Constants.InstanceStatus.Stopped);
+        AppHandlers.ErrorHandler(instance, ex);
       }
     }
 
-    private void ButtonStop_Click(object sender, RoutedEventArgs e)
+    private async void ButtonStop_ClickAsync(object sender, RoutedEventArgs e)
     {
-      AppHandlers.InfoHandler(_instance, MethodBase.GetCurrentMethod().Name);
+      var instance = _instance;
+      AppHandlers.InfoHandler(instance, MethodBase.GetCurrentMethod().Name);
 
-      if (_instance == null || _instance.Status != Constants.InstanceStatus.Working)
+      if (instance == null || instance.Status != Constants.InstanceStatus.Working)
         return;
 
       try
       {
-        var serviceStatus = AppHandlers.GetServiceStatus(_instance);
+        var serviceStatus = AppHandlers.GetServiceStatus(instance);
         if (serviceStatus == Constants.InstanceStatus.Working)
-          AppHandlers.LaunchProcess(AppHelper.GetDoPath(_instance.InstancePath), "all down", true, true);
+        {
+          ChangeGridStatus(instance, Constants.InstanceStatus.Update);
+          await Task.Run(() => AppHandlers.LaunchProcess(AppHelper.GetDoPath(instance.InstancePath), "all down", true, true));
+          ChangeGridStatus(instance, Constants.InstanceStatus.Stopped);
+        }
       }
       catch (Exception ex)
       {
-        AppHandlers.ErrorHandler(_instance, ex);
+        ChangeGridStatus(instance, Constants.InstanceStatus.Stopped);
+        AppHandlers.ErrorHandler(instance, ex);
       }
     }
 
@@ -222,14 +239,15 @@ namespace RXInstanceManager
       }
     }
 
-    private void ChangeProject_Click(object sender, RoutedEventArgs e)
+    private async void ChangeProject_ClickAsync(object sender, RoutedEventArgs e)
     {
-      AppHandlers.InfoHandler(_instance, MethodBase.GetCurrentMethod().Name);
+      var instance = _instance;
+      AppHandlers.InfoHandler(instance, MethodBase.GetCurrentMethod().Name);
       using (System.Windows.Forms.OpenFileDialog openFileDialog = new System.Windows.Forms.OpenFileDialog())
       {
-        var filter = string.Format("configs for {0}|{0}_*.yml;{0}_*.yaml|YAML-файлы|*.yml;*.yaml|All files (*.*)|*.*", _instance.Code);
-        if (!string.IsNullOrEmpty(_instance.ProjectConfigPath))
-          openFileDialog.InitialDirectory = Path.GetDirectoryName(_instance.ProjectConfigPath);
+        var filter = string.Format("configs for {0}|{0}_*.yml;{0}_*.yaml|YAML-файлы|*.yml;*.yaml|All files (*.*)|*.*", instance.Code);
+        if (!string.IsNullOrEmpty(instance.ProjectConfigPath))
+          openFileDialog.InitialDirectory = Path.GetDirectoryName(instance.ProjectConfigPath);
         openFileDialog.Filter = filter;
         openFileDialog.FilterIndex = 1;
         openFileDialog.RestoreDirectory = true;
@@ -242,24 +260,33 @@ namespace RXInstanceManager
             string needCheck = "False";
             if (_configRxInstMan.NeedCheckAfterSet)
               needCheck = "True";
-            AppHandlers.LaunchProcess(AppHelper.GetDoPath(_instance.InstancePath), string.Format("map set {0} -rundds=False -need_pause -need_check={1}", config_filename, needCheck), true, true);
+
+            var lastStatus = instance.Status;
+            ChangeGridStatus(instance, Constants.InstanceStatus.Update);
+            await Task.Run(() => AppHandlers.LaunchProcess(AppHelper.GetDoPath(instance.InstancePath),
+                                                           string.Format("map set {0} -rundds=False -need_pause -need_check={1}", config_filename, needCheck),
+                                                           true,
+                                                           true));
+            ChangeGridStatus(instance, lastStatus);
           }
           catch (Exception ex)
           {
-            AppHandlers.ErrorHandler(_instance, ex);
+            ChangeGridStatus(instance, Constants.InstanceStatus.Stopped);
+            AppHandlers.ErrorHandler(instance, ex);
           }
 
         }
       }
     }
 
-    private void CreateProject_Click(object sender, RoutedEventArgs e)
+    private async void CreateProject_ClickAsync(object sender, RoutedEventArgs e)
     {
-      AppHandlers.InfoHandler(_instance, MethodBase.GetCurrentMethod().Name);
+      var instance = _instance;
+      AppHandlers.InfoHandler(instance, MethodBase.GetCurrentMethod().Name);
       using (System.Windows.Forms.OpenFileDialog openFileDialog = new System.Windows.Forms.OpenFileDialog())
       {
-        var filter = string.Format("configs for {0}|{0}_*.yml;{0}_*.yaml|YAML-файлы|*.yml;*.yaml|All files (*.*)|*.*", _instance.Code);
-        openFileDialog.InitialDirectory = string.IsNullOrEmpty(_instance.ProjectConfigPath) ? "C:\\" : Path.GetDirectoryName(_instance.ProjectConfigPath);
+        var filter = string.Format("configs for {0}|{0}_*.yml;{0}_*.yaml|YAML-файлы|*.yml;*.yaml|All files (*.*)|*.*", instance.Code);
+        openFileDialog.InitialDirectory = string.IsNullOrEmpty(instance.ProjectConfigPath) ? "C:\\" : Path.GetDirectoryName(_instance.ProjectConfigPath);
         openFileDialog.Filter = filter;
         openFileDialog.FilterIndex = 1;
         openFileDialog.RestoreDirectory = true;
@@ -269,14 +296,17 @@ namespace RXInstanceManager
           var config_filename = openFileDialog.FileName;
           try
           {
-            AppHandlers.LaunchProcess("cmd",
-                                      string.Format("cmd /K {1} map create_project {0} -rundds=False -need_pause",
-                                      config_filename, AppHelper.GetDoPath(_instance.InstancePath)),
-                                      true, true);
+            ChangeGridStatus(instance, Constants.InstanceStatus.Update);
+            await Task.Run(() => AppHandlers.LaunchProcess("cmd",
+                                                      string.Format("cmd /K {1} map create_project {0} -rundds=False -need_pause",
+                                                      config_filename, AppHelper.GetDoPath(instance.InstancePath)),
+                                                      true, true));
+            ChangeGridStatus(instance, Constants.InstanceStatus.Working);
           }
           catch (Exception ex)
           {
-            AppHandlers.ErrorHandler(_instance, ex);
+            ChangeGridStatus(instance, Constants.InstanceStatus.Stopped);
+            AppHandlers.ErrorHandler(instance, ex);
           }
 
         }
@@ -377,18 +407,15 @@ namespace RXInstanceManager
       if (_instance == null)
         return;
 
-      Dialogs.ShowInformationDialog(_instance.ToString());
+      Dialogs.ShowInformation(_instance.ToString());
     }
 
     #endregion
 
     private void StartAsyncHandlers()
     {
-#pragma warning disable CS4014
-      // Так как этот вызов не ожидается, выполнение существующего метода продолжается до тех пор, пока вызов не будет завершен
-      UpdateInstanceGridAsync();
-      UpdateInstanceDataAsync();
-#pragma warning restore CS4014
+      _ = UpdateInstanceGridAsync();
+      _ = UpdateInstanceDataAsync();
     }
 
     private void HiddenButton_Click(object sender, RoutedEventArgs e)
@@ -635,6 +662,13 @@ namespace RXInstanceManager
         AppHandlers.LaunchProcess(_instance.LogFolder);
       else
         System.Windows.MessageBox.Show($"Папка {_instance.LogFolder} не существует.", "", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+    }
+
+    private void ChangeGridStatus(Instance instance, string status)
+    {
+      instance.Status = status;
+      ActionButtonVisibleChanging(instance: instance);
+      LoadInstances(instance.InstancePath);
     }
   }
 }
