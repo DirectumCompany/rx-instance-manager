@@ -470,6 +470,22 @@ namespace RXInstanceManager
         System.Windows.MessageBox.Show($"Папка {_instance.LogFolder} не существует.", "", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
     }
 
+    private void RunMetadataBrowser_Click(object sender, RoutedEventArgs e)
+    {
+      if (_instance == null)
+        return;
+
+      if (File.Exists(_configRxInstMan.MetadataBrowser))
+      try
+      {
+        Task.Run(() => AppHandlers.LaunchProcess(AppHelper.GetDoPath(_instance.InstancePath), "map run_metadata_browser " + _configRxInstMan.MetadataBrowser, true, false, true));
+      }
+      catch (Exception ex)
+      {
+        AppHandlers.ErrorHandler(_instance, ex);
+      }
+    }
+
     private void ButtonSourcesFolder_Click(object sender, RoutedEventArgs e)
     {
       if (Directory.Exists(_instance.WorkingRepositoryName))

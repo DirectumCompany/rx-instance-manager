@@ -236,7 +236,7 @@ namespace RXInstanceManager
       LaunchProcess(fileName, null, asAdmin, false);
     }
 
-    public static void LaunchProcess(string fileName, string args, bool asAdmin, bool waitForExit)
+    public static void LaunchProcess(string fileName, string args, bool asAdmin, bool waitForExit, bool isHiddenCommandLine = false)
     {
       using (var process = new Process())
       {
@@ -252,6 +252,14 @@ namespace RXInstanceManager
 
         if (asAdmin)
           process.StartInfo.Verb = "runas";
+
+        if (isHiddenCommandLine)
+        {
+          process.StartInfo.CreateNoWindow = true;
+          process.StartInfo.UseShellExecute = false;
+          process.StartInfo.RedirectStandardOutput = true;
+          process.StartInfo.RedirectStandardError = true;
+        }
 
         try
         {

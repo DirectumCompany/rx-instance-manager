@@ -42,6 +42,7 @@
         <Button x:Name="ButtonDDSStart" Content="Development Studio" Style="{DynamicResource RecordActionButton}" Background="GreenYellow" Click="ButtonDDSStart_Click" />
         <Button x:Name="ButtonRXStart" Content="Веб-клиент" Style="{DynamicResource RecordActionButton}" Background="Violet" Click="ButtonRXStart_Click" />
         <Button x:Name="ButtonLogViewer" Content="Directum LogViewer" Style="{DynamicResource RecordActionButton}" Background="Gray" Click="RunDirectumLogViewer_Click" />
+        <Button x:Name="ButtonMetadataBrowser" Content="Metadata Browser" Style="{DynamicResource RecordActionButton}" Background="Yellow" Click="RunMetadataBrowser_Click" />
         <Button x:Name="ButtonSourcesFolder" Content="Папка исходников" Style="{DynamicResource RecordActionButton}" Background="#FFDCA3FF" Click="ButtonSourcesFolder_Click" />
       </StackPanel>
       <DataGrid x:Name="GridInstances" AutoGenerateColumns="False" Style="{DynamicResource DataGridStyle}" Grid.Row="1" SelectionChanged="GridInstances_SelectionChanged" >
