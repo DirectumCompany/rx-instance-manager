@@ -171,12 +171,24 @@ namespace RXInstanceManager
 
       try
       {
+        AppHandlers.LaunchProcess(AppHelper.GetDDSPath(_instance.InstancePath), true);
+      }
+      catch (Exception ex)
+      {
+        AppHandlers.ErrorHandler(_instance, ex);
+      }
+    }
+
+    private void ButtonCDSStart_Click(object sender, RoutedEventArgs e)
+    {
+      try
+      {
         if (string.IsNullOrEmpty(_instance.StoragePath))
         {
           System.Windows.MessageBox.Show("Не указана папка исходников");
           return;
         }
-        AppHandlers.LaunchProcess(AppHelper.GetDDSPath(_instance.InstancePath), true);
+        AppHandlers.LaunchProcess(AppHelper.GetCDSPath(_instance.InstancePath, _instance.Code), true);
       }
       catch (Exception ex)
       {

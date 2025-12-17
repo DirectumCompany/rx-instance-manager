@@ -36,13 +36,14 @@
         <RowDefinition />
       </Grid.RowDefinitions>
       <StackPanel Orientation="Horizontal" Height="40" Grid.Row="0">
-        <Button x:Name="ButtonAdd" Content="Добавить" Style="{DynamicResource RecordActionButton}" Margin="10,5,5,5" Background="SkyBlue" Click="ButtonAdd_Click" />
-        <Button x:Name="ButtonStart" Content="do all up" Style="{DynamicResource RecordActionButton}" Background="SteelBlue" Click="ButtonStart_ClickAsync" />
-        <Button x:Name="ButtonStop" Content="do all down" Style="{DynamicResource RecordActionButton}" Background="SteelBlue" Click="ButtonStop_ClickAsync" />
-        <Button x:Name="ButtonDDSStart" Content="Development Studio" Style="{DynamicResource RecordActionButton}" Background="GreenYellow" Click="ButtonDDSStart_Click" />
-        <Button x:Name="ButtonRXStart" Content="Веб-клиент" Style="{DynamicResource RecordActionButton}" Background="Violet" Click="ButtonRXStart_Click" />
-        <Button x:Name="ButtonLogViewer" Content="Directum LogViewer" Style="{DynamicResource RecordActionButton}" Background="Gray" Click="RunDirectumLogViewer_Click" />
-        <Button x:Name="ButtonSourcesFolder" Content="Папка исходников" Style="{DynamicResource RecordActionButton}" Background="#FFDCA3FF" Click="ButtonSourcesFolder_Click" />
+        <Button x:Name="ButtonAdd" Content="Добавить" Style="{DynamicResource RecordActionButton}" Margin="10,5,5,5" Background="SkyBlue" Click="ButtonAdd_Click" Cursor="Hand" />
+        <Button x:Name="ButtonStart" Content="do all up" Style="{DynamicResource RecordActionButton}" Background="SteelBlue" Click="ButtonStart_ClickAsync" Cursor="Hand" />
+        <Button x:Name="ButtonStop" Content="do all down" Style="{DynamicResource RecordActionButton}" Background="SteelBlue" Click="ButtonStop_ClickAsync" Cursor="Hand" />
+        <Button x:Name="ButtonDDSStart" Content="Development Studio" Style="{DynamicResource RecordActionButton}" Background="GreenYellow" Click="ButtonDDSStart_Click" Cursor="Hand" />
+        <Button x:Name="ButtonCDSStart" Content="CrossPlatformDevStudio" Style="{DynamicResource RecordActionButton}" Background="Green" Click="ButtonCDSStart_Click" Cursor="Hand" />
+        <Button x:Name="ButtonRXStart" Content="Веб-клиент" Style="{DynamicResource RecordActionButton}" Background="Violet" Click="ButtonRXStart_Click" Cursor="Hand" />
+        <Button x:Name="ButtonLogViewer" Content="Directum LogViewer" Style="{DynamicResource RecordActionButton}" Background="Gray" Click="RunDirectumLogViewer_Click" Cursor="Hand" />
+        <Button x:Name="ButtonSourcesFolder" Content="Папка исходников" Style="{DynamicResource RecordActionButton}" Background="#FFDCA3FF" Click="ButtonSourcesFolder_Click" Cursor="Hand" />
       </StackPanel>
       <DataGrid x:Name="GridInstances" AutoGenerateColumns="False" Style="{DynamicResource DataGridStyle}" Grid.Row="1" SelectionChanged="GridInstances_SelectionChanged" >
         <DataGrid.Columns>

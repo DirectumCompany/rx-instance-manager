@@ -162,6 +162,7 @@ namespace RXInstanceManager
         instance = _instance;
 
       ButtonDDSStart.IsEnabled = true;
+      ButtonCDSStart.IsEnabled = true;
       ButtonStop.IsEnabled = true;
       ButtonStart.IsEnabled = true;
       ChangeProject.IsEnabled = true;
@@ -175,6 +176,7 @@ namespace RXInstanceManager
       ButtonStart.Visibility = Visibility.Collapsed;
       ButtonStop.Visibility = Visibility.Collapsed;
       ButtonDDSStart.Visibility = Visibility.Collapsed;
+      ButtonCDSStart.Visibility = Visibility.Collapsed;
       ButtonRXStart.Visibility = Visibility.Collapsed;
       ButtonLogViewer.Visibility = Visibility.Collapsed;
       ButtonSourcesFolder.Visibility = Visibility.Collapsed;
@@ -205,6 +207,7 @@ namespace RXInstanceManager
       {
         case Constants.InstanceStatus.Stopped:
           ButtonDDSStart.Visibility = Visibility.Visible;
+          ButtonCDSStart.Visibility = Visibility.Visible;
           ButtonRXStart.Visibility = Visibility.Collapsed;
           ButtonStop.Visibility = Visibility.Collapsed;
           ButtonStart.Visibility = Visibility.Visible;
@@ -216,6 +219,7 @@ namespace RXInstanceManager
           break;
         case Constants.InstanceStatus.Working:
           ButtonDDSStart.Visibility = Visibility.Visible;
+          ButtonCDSStart.Visibility = Visibility.Visible;
           ButtonRXStart.Visibility = Visibility.Visible;
           ButtonStop.Visibility = Visibility.Visible;
           ButtonStart.Visibility = Visibility.Collapsed;
@@ -228,6 +232,8 @@ namespace RXInstanceManager
         case Constants.InstanceStatus.Update:
           ButtonDDSStart.Visibility = Visibility.Visible;
           ButtonDDSStart.IsEnabled = false;
+          ButtonCDSStart.Visibility = Visibility.Visible;
+          ButtonCDSStart.IsEnabled = false;
           ButtonRXStart.Visibility = Visibility.Visible;
           ButtonStop.Visibility = Visibility.Visible;
           ButtonStop.IsEnabled = false;
@@ -247,6 +253,22 @@ namespace RXInstanceManager
           ConvertDBsContext.IsEnabled = false;
           break;
       }
+      SetVisibleDevStudiosButtons(instance);
+    }
+
+    private void SetVisibleDevStudiosButtons(Instance instance)
+    {
+      var ddsPath = RXInstanceManager.AppHelper.GetDDSPath(instance.InstancePath);
+      var cdsPath = RXInstanceManager.AppHelper.GetCDSPath(instance.InstancePath, instance.Code);
+      
+      if (!File.Exists(ddsPath))
+      {
+        ButtonDDSStart.Visibility = Visibility.Collapsed;
+        RunDDSWithOutDeploy.Visibility = Visibility.Collapsed;
+      }
+      
+      if (!File.Exists(cdsPath))
+        ButtonCDSStart.Visibility = Visibility.Collapsed;
     }
 
 #endregion

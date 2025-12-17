@@ -105,6 +105,11 @@ namespace RXInstanceManager
       return Path.Combine(instancePath, "etc", "_builds", "DevelopmentStudio", "bin", "DevelopmentStudio.exe");
     }
 
+    public static string GetCDSPath(string instancePath, string code)
+    {
+      return Path.Combine(instancePath, "etc", "_" + code, "_builds_bin", "DevelopmentStudioDesktop", "DevelopmentStudio.exe");
+    }
+
     public static string GetLocalIPAddress()
     {
       var host = Dns.GetHostEntry(Dns.GetHostName());
