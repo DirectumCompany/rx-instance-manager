@@ -258,6 +258,15 @@ namespace RXInstanceManager
 
     private void SetVisibleDevStudiosButtons(Instance instance)
     {
+      if (instance == null)
+      {
+        ButtonDDSStart.Visibility = Visibility.Collapsed;
+        RunDDSWithOutDeploy.Visibility = Visibility.Collapsed;
+        ButtonCDSStart.Visibility = Visibility.Collapsed;
+        
+        return;
+      }
+
       var ddsPath = RXInstanceManager.AppHelper.GetDDSPath(instance.InstancePath);
       var cdsPath = RXInstanceManager.AppHelper.GetCDSPath(instance.InstancePath, instance.Code);
       
