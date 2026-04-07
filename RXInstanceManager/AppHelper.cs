@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 
 namespace RXInstanceManager
 {
@@ -61,7 +62,13 @@ namespace RXInstanceManager
 
     public static string GetDoPath(string instancePath)
     {
-      return Path.Combine(instancePath, "do.bat");
+      var bat = Path.Combine(instancePath, "do.bat");
+      if (File.Exists(bat))
+        return bat;
+      var sh = Path.Combine(instancePath, "do.sh");
+      if (File.Exists(sh))
+        return sh;
+      return Path.Combine(instancePath, "do");
     }
 
     public static string GetConfigYamlPath(string instancePath)
@@ -189,15 +196,16 @@ namespace RXInstanceManager
     {
       try
       {
-        var httpWebRequest = (HttpWebRequest)HttpWebRequest.Create(new Uri(url));
-        var httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+        using (var client = new HttpClient { Timeout = TimeSpan.FromSeconds(10) })
+        {
+          var response = client.GetAsync(url).GetAwaiter().GetResult();
+          return response.IsSuccessStatusCode;
+        }
       }
       catch
       {
         return false;
       }
-
-      return true;
     }
 
     public static DateTime GetFileChangeTime(string path)

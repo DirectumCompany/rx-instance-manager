@@ -7,7 +7,7 @@ namespace RXInstanceManager
 {
   public static class Instances
   {
-    internal static readonly string YamlFilePath = $"{AppContext.BaseDirectory}{Constants.InstancesDBFileName}";
+    internal static readonly string YamlFilePath = Path.Combine(AppContext.BaseDirectory, Constants.InstancesDBFileName);
     public static List<Instance> instances;
     public static List<string> instancesFolders;
 

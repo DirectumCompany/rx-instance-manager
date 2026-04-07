@@ -298,7 +298,7 @@ namespace RXInstanceManager
       using (System.Windows.Forms.OpenFileDialog openFileDialog = new System.Windows.Forms.OpenFileDialog())
       {
         var filter = string.Format("configs for {0}|{0}_*.yml;{0}_*.yaml|YAML-файлы|*.yml;*.yaml|All files (*.*)|*.*", instance.Code);
-        openFileDialog.InitialDirectory = string.IsNullOrEmpty(instance.ProjectConfigPath) ? "C:\\" : Path.GetDirectoryName(_instance.ProjectConfigPath);
+        openFileDialog.InitialDirectory = string.IsNullOrEmpty(instance.ProjectConfigPath) ? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) : Path.GetDirectoryName(_instance.ProjectConfigPath);
         openFileDialog.Filter = filter;
         openFileDialog.FilterIndex = 1;
         openFileDialog.RestoreDirectory = true;
@@ -331,7 +331,7 @@ namespace RXInstanceManager
       using (System.Windows.Forms.OpenFileDialog openFileDialog = new System.Windows.Forms.OpenFileDialog())
       {
         var filter = string.Format("configs for {0}|{0}_*.yml;{0}_*.yaml|YAML-файлы|*.yml;*.yaml|All files (*.*)|*.*", _instance.Code);
-        openFileDialog.InitialDirectory = string.IsNullOrEmpty(_instance.ProjectConfigPath) ? "C:\\" : Path.GetDirectoryName(_instance.ProjectConfigPath);
+        openFileDialog.InitialDirectory = string.IsNullOrEmpty(_instance.ProjectConfigPath) ? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) : Path.GetDirectoryName(_instance.ProjectConfigPath);
         openFileDialog.Filter = filter;
         openFileDialog.FilterIndex = 1;
         openFileDialog.RestoreDirectory = true;
@@ -358,7 +358,7 @@ namespace RXInstanceManager
       using (System.Windows.Forms.OpenFileDialog openFileDialog = new System.Windows.Forms.OpenFileDialog())
       {
         var filter = string.Format("configs for {0}|{0}_*.yml;{0}_*.yaml|YAML-файлы|*.yml;*.yaml|All files (*.*)|*.*", _instance.Code);
-        openFileDialog.InitialDirectory = string.IsNullOrEmpty(_instance.ProjectConfigPath) ? "C:\\" : Path.GetDirectoryName(_instance.ProjectConfigPath);
+        openFileDialog.InitialDirectory = string.IsNullOrEmpty(_instance.ProjectConfigPath) ? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) : Path.GetDirectoryName(_instance.ProjectConfigPath);
         openFileDialog.Filter = filter;
         openFileDialog.FilterIndex = 1;
         openFileDialog.RestoreDirectory = true;
@@ -466,10 +466,13 @@ namespace RXInstanceManager
       {
         try
         {
-          using (var regKey = Registry.CurrentUser.OpenSubKey(@"Software\JsonLogViewerSettings", false))
+          if (OperatingSystem.IsWindows())
           {
-            if (regKey != null && (string)regKey.GetValue("LogsPath") != _instance.LogFolder)
-              AppHandlers.ExecuteCmdCommands(true, false, "REG ADD HKCU\\Software\\JsonLogViewerSettings /v LogsPath /t REG_SZ /d \"" + _instance.LogFolder + "\" /f");
+            using (var regKey = Registry.CurrentUser.OpenSubKey(@"Software\JsonLogViewerSettings", false))
+            {
+              if (regKey != null && (string)regKey.GetValue("LogsPath") != _instance.LogFolder)
+                AppHandlers.ExecuteCmdCommands(true, false, "REG ADD HKCU\\Software\\JsonLogViewerSettings /v LogsPath /t REG_SZ /d \"" + _instance.LogFolder + "\" /f");
+            }
           }
           AppHandlers.LaunchProcess(_configRxInstMan.LogViewer);
         }
@@ -513,7 +516,7 @@ namespace RXInstanceManager
       using (System.Windows.Forms.OpenFileDialog openFileDialog = new System.Windows.Forms.OpenFileDialog())
       {
         var filter = string.Format("configs for {0}|{0}_*.yml;{0}_*.yaml|YAML-файлы|*.yml;*.yaml|All files (*.*)|*.*", _instance.Code);
-        openFileDialog.InitialDirectory = string.IsNullOrEmpty(_instance.ProjectConfigPath) ? "C:\\" : Path.GetDirectoryName(_instance.ProjectConfigPath);
+        openFileDialog.InitialDirectory = string.IsNullOrEmpty(_instance.ProjectConfigPath) ? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) : Path.GetDirectoryName(_instance.ProjectConfigPath);
         openFileDialog.Filter = filter;
         openFileDialog.FilterIndex = 1;
         openFileDialog.Multiselect = true;

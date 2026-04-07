@@ -15,7 +15,7 @@ namespace RXInstanceManager
 
     private void LoadConfig()
     {
-      string rxInstManConfigFilePath = $"{AppContext.BaseDirectory}{Constants.RXInstanceManagerConfigFileNane}";
+      string rxInstManConfigFilePath = Path.Combine(AppContext.BaseDirectory, Constants.RXInstanceManagerConfigFileNane);
 
 
       if (!File.Exists(rxInstManConfigFilePath))

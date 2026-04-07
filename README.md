@@ -65,3 +65,13 @@
     * removeInstance - Убрать инстанс из списка
     * openRXFolder - Открыть папку инстанса
     * openLogFolder - Открыть папку инстанса
+
+### Сборка и платформы
+
+Проект переведён на **SDK-стиль** и **.NET 8** (`net8.0-windows`). Сборка из командной строки (на машине с установленным [.NET SDK 8](https://dotnet.microsoft.com/download/dotnet/8.0)):
+
+```bash
+dotnet build RXInstanceManager/RXInstanceManager.csproj -c Release
+```
+
+Графический интерфейс реализован на **WPF** и рассчитан на **Windows**. Интеграция с Directum RX (службы Windows, `do.bat`, реестр для LogViewer) также ориентирована на Windows. Логика работы с путями и конфигурацией использует переносимые API (`Path.Combine`, профиль пользователя вместо жёсткого `C:\` и т.д.), чтобы упростить дальнейшее развитие и сопровождение.

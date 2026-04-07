@@ -5,8 +5,6 @@ using System.IO;
 using System.Text.Json;
 using System.Diagnostics;
 using System.ServiceProcess;
-using System.Security.Principal;
-using System.Security.AccessControl;
 using System.Threading.Tasks;
 using NLog;
 using System.Dynamic;
@@ -127,6 +125,9 @@ namespace RXInstanceManager
 
     public static bool ServiceExists(Instance instance)
     {
+      if (!OperatingSystem.IsWindows())
+        return false;
+
       return ServiceController.GetServices().Any(s => s.ServiceName == instance.ServiceName);
     }
 
@@ -137,6 +138,9 @@ namespace RXInstanceManager
 
     public static string GetServiceStatus(string serviceName)
     {
+      if (!OperatingSystem.IsWindows())
+        return Constants.InstanceStatus.Stopped;
+
       var serviceStatus = Constants.InstanceStatus.Stopped;
 
       using (var service = ServiceController.GetServices().FirstOrDefault(s => s.ServiceName == serviceName))
@@ -195,7 +199,7 @@ namespace RXInstanceManager
 
     public static void ShowMainLog()
     {
-      var log = Path.Combine(Constants.LogPath, DateTime.Today.ToString("yyyy-MM-dd") + ".log");
+      var log = Path.Combine(AppContext.BaseDirectory, Constants.LogPath, DateTime.Today.ToString("yyyy-MM-dd") + ".log");
       LaunchProcess("notepad.exe", log, false, false);
     }
 
@@ -241,6 +245,7 @@ namespace RXInstanceManager
       using (var process = new Process())
       {
         process.StartInfo.FileName = fileName;
+        process.StartInfo.UseShellExecute = true;
 
         if (!string.IsNullOrEmpty(args))
         {
@@ -262,7 +267,8 @@ namespace RXInstanceManager
         }
         catch (System.ComponentModel.Win32Exception ex)
         {
-          if (ex.Message != "Операция была отменена пользователем")
+          // ERROR_CANCELLED (1223) — user dismissed UAC or operation cancelled (locale-independent)
+          if (ex.NativeErrorCode != 1223)
             throw ex;
         }
       }
@@ -275,17 +281,26 @@ namespace RXInstanceManager
 
     public static void ExecuteCmdCommand(string command, bool asAdmin)
     {
+      if (!OperatingSystem.IsWindows())
+        return;
+
       LaunchProcess("cmd", "\"cmd /K " + command + "\"", asAdmin, true);
     }
 
     public static void ExecuteCmdCommands(bool asAdmin, bool waitForExit, params string[] commands)
     {
+      if (!OperatingSystem.IsWindows())
+        return;
+
       LaunchProcess("cmd", "\"cmd /K " + string.Join(" & ", commands) + "\"", asAdmin, waitForExit);
     }
 
     public static void ExecuteDoCommands(string instancePath, params string[] commands)
     {
-      var command = $"cd {instancePath} & " + string.Join(" & ", commands);
+      if (!OperatingSystem.IsWindows())
+        return;
+
+      var command = $"cd /d \"{instancePath}\" & " + string.Join(" & ", commands);
       ExecuteCmdCommand(command, true);
     }
 
