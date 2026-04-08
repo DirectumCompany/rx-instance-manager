@@ -5,51 +5,76 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RXInstanceManager"
         mc:Ignorable="d"
-        Title="Менеджер экземпляров RX" Height="400" Width="1400" MinHeight="300" MinWidth="1000" WindowStartupLocation="CenterScreen" Closing="OnClose" StateChanged="OnStateChanged" IsVisibleChanged="OnIsVisibleChanged">
-  <Window.Resources>
-    <ResourceDictionary>
-      <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="UIResources.xaml" />
-      </ResourceDictionary.MergedDictionaries>
-    </ResourceDictionary>
-  </Window.Resources>
+        Title="Менеджер экземпляров RX"
+        Height="480" MinHeight="320" MinWidth="960"
+        WindowStartupLocation="CenterScreen"
+        Closing="OnClose" StateChanged="OnStateChanged" IsVisibleChanged="OnIsVisibleChanged"
+        Background="{StaticResource Brush.Surface}"
+        FontFamily="Segoe UI Variable, Segoe UI"
+        TextOptions.TextFormattingMode="Display">
+  <!-- UIResources merged in App.xaml so StaticResource on Window resolves after dictionary load -->
+
   <Grid>
-    <Grid.ColumnDefinitions>
-      <ColumnDefinition Width="40" />
-      <ColumnDefinition />
-      <ColumnDefinition Width="40" />
-    </Grid.ColumnDefinitions>
     <Grid.RowDefinitions>
-      <RowDefinition Height="40" />
-      <RowDefinition />
-      <RowDefinition Height="30" />
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
-    <Button x:Name="HiddenButton" Content="info" Grid.Column="0" Grid.Row="0" Width="40" Background="#5b5f6a" Click="HiddenButton_Click" />
-    <Button x:Name="ButtonDisableMinimizeToTray" Grid.Column="3" Grid.Row="0" Width="40" Background="#5b5f6a" Click="ButtonDisableMinimizeToTray_Click" />
-    <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="1" Style="{DynamicResource HeaderStackPanel}"/>
-    <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Style="{DynamicResource HeaderStackPanel}"/>
-    <StackPanel Orientation="Vertical" Grid.Row="1" Grid.Column="0" Grid.RowSpan="2" Background="#2C353C" />
-    <StackPanel Orientation="Vertical" Grid.Row="1" Grid.Column="2" Grid.RowSpan="2" Background="#5b5f6a" />
-    <Grid Grid.Row="1" Grid.Column="1">
-      <Grid.RowDefinitions>
-        <RowDefinition Height="50"/>
-        <RowDefinition />
-      </Grid.RowDefinitions>
-      <StackPanel Orientation="Horizontal" Height="40" Grid.Row="0">
-        <Button x:Name="ButtonAdd" Content="Добавить" Style="{DynamicResource RecordActionButton}" Margin="10,5,5,5" Background="SkyBlue" Click="ButtonAdd_Click" Cursor="Hand" />
-        <Button x:Name="ButtonStart" Content="do all up" Style="{DynamicResource RecordActionButton}" Background="SteelBlue" Click="ButtonStart_ClickAsync" Cursor="Hand" />
-        <Button x:Name="ButtonStop" Content="do all down" Style="{DynamicResource RecordActionButton}" Background="SteelBlue" Click="ButtonStop_ClickAsync" Cursor="Hand" />
-        <Button x:Name="ButtonDDSStart" Content="Development Studio" Style="{DynamicResource RecordActionButton}" Background="GreenYellow" Click="ButtonDDSStart_Click" Cursor="Hand" />
-        <Button x:Name="ButtonCDSStart" Content="CrossPlatformDevStudio" Style="{DynamicResource RecordActionButton}" Background="Green" Click="ButtonCDSStart_Click" Cursor="Hand" />
-        <Button x:Name="ButtonRXStart" Content="Веб-клиент" Style="{DynamicResource RecordActionButton}" Background="Violet" Click="ButtonRXStart_Click" Cursor="Hand" />
-        <Button x:Name="ButtonLogViewer" Content="Directum LogViewer" Style="{DynamicResource RecordActionButton}" Background="Gray" Click="RunDirectumLogViewer_Click" Cursor="Hand" />
-        <Button x:Name="ButtonSourcesFolder" Content="Папка исходников" Style="{DynamicResource RecordActionButton}" Background="#FFDCA3FF" Click="ButtonSourcesFolder_Click" Cursor="Hand" />
-      </StackPanel>
-      <DataGrid x:Name="GridInstances" AutoGenerateColumns="False" Style="{DynamicResource DataGridStyle}" Grid.Row="1" SelectionChanged="GridInstances_SelectionChanged" >
+
+    <!-- Chrome: info | действия | трей -->
+    <Border Grid.Row="0" Background="{StaticResource Brush.Chrome}" Padding="10,6,10,6">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <Button x:Name="HiddenButton"
+                Grid.Column="0"
+                Content="i"
+                Style="{StaticResource ToolbarButtonChrome}"
+                Width="36" MinWidth="36"
+                VerticalAlignment="Center"
+                ToolTip="Информация о текущем проекте (map current)"
+                Click="HiddenButton_Click" />
+        <WrapPanel Grid.Column="1"
+                   Orientation="Horizontal"
+                   VerticalAlignment="Center"
+                   Margin="10,0,10,0">
+          <Button x:Name="ButtonAdd" Content="Добавить" Style="{StaticResource ToolbarButtonAccent}" Click="ButtonAdd_Click" />
+          <Button x:Name="ButtonStart" Content="do all up" Style="{StaticResource ToolbarButtonSuccess}" Click="ButtonStart_ClickAsync" />
+          <Button x:Name="ButtonStop" Content="do all down" Style="{StaticResource ToolbarButtonDanger}" Click="ButtonStop_ClickAsync" />
+          <Button x:Name="ButtonDDSStart" Content="Development Studio" Style="{StaticResource ToolbarButtonViolet}" Click="ButtonDDSStart_Click" />
+          <Button x:Name="ButtonCDSStart" Content="CrossPlatform DevStudio" Style="{StaticResource ToolbarButtonTeal}" Click="ButtonCDSStart_Click" />
+          <Button x:Name="ButtonRXStart" Content="Веб-клиент" Style="{StaticResource ToolbarButtonSky}" Click="ButtonRXStart_Click" />
+          <Button x:Name="ButtonLogViewer" Content="Directum LogViewer" Style="{StaticResource ToolbarButtonMuted}" Click="RunDirectumLogViewer_Click" />
+        </WrapPanel>
+        <Button x:Name="ButtonDisableMinimizeToTray"
+                Grid.Column="2"
+                Content="●"
+                Style="{StaticResource ToolbarButtonChrome}"
+                Width="54" MinWidth="54"
+                VerticalAlignment="Center"
+                FontSize="10"
+                ToolTip="Переключить сворачивание в трей"
+                Click="ButtonDisableMinimizeToTray_Click" />
+      </Grid>
+    </Border>
+
+    <!-- Data grid card -->
+    <Border x:Name="InstancesCardBorder" Grid.Row="1" Margin="16,10,16,16" Padding="0" Background="{StaticResource Brush.Card}"
+            VerticalAlignment="Stretch"
+            CornerRadius="10" BorderBrush="{StaticResource Brush.Border}" BorderThickness="1" ClipToBounds="True"
+            SizeChanged="InstancesCardBorder_SizeChanged">
+      <Border.Effect>
+        <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.06" Color="#0F172A"/>
+      </Border.Effect>
+      <DataGrid x:Name="GridInstances" AutoGenerateColumns="False" Style="{StaticResource DataGridStyle}"
+                VerticalAlignment="Top" HorizontalAlignment="Stretch"
+                SelectionChanged="GridInstances_SelectionChanged" >
         <DataGrid.Columns>
           <DataGridTextColumn Binding="{Binding InstancePath}" Header="Путь" Width="150" />
           <DataGridTextColumn Binding="{Binding SolutionVersion}" Header="Версия" Width="80" />
-          <DataGridTextColumn Binding="{Binding Status}" Header="Статус" Width="80" />
+          <DataGridTextColumn Binding="{Binding Status}" Header="Статус" Width="90" />
           <DataGridTextColumn Binding="{Binding URL}" Header="URL" Width="200" />
           <DataGridTextColumn Binding="{Binding Name}" Header="Назначение" Width="250" />
           <DataGridTextColumn Binding="{Binding ProjectConfigPath}" Header="Конфиг проекта" Width="250" />
@@ -64,20 +89,24 @@
             <MenuItem x:Name="UpdateConfig" Header="Пропатчить config.yml" Click="UpdateConfig_Click" />
             <MenuItem x:Name="CheckServices" Header="Проверить сервисы" Click="CheckServices_Click" />
             <MenuItem x:Name="RunDDSWithOutDeploy" Header="Открыть DDS без deploy" Click="RunDDSWithOutDeploy_Click" />
+            <Separator/>
             <MenuItem x:Name="InfoContext" Header="Сводка по инстансу" Click="InfoContext_Click" />
-            <MenuItem x:Name="CmdAdminContext" Header="Запустить cmd (от администратора)" Icon="🖥️" Click="CmdAdminContext_Click" />
+            <MenuItem x:Name="CmdAdminContext" Header="Запустить cmd (от администратора)" Click="CmdAdminContext_Click" />
+            <Separator/>
             <MenuItem x:Name="ClearLogContext" Header="Очистить логи текущего экземпляра RX" Click="ClearLogContext_Click" />
             <MenuItem x:Name="ClearLogAllInstancesContext" Header="Очистить логи всех экземпляров RX" Click="ClearLogAllInstancesContext_Click" />
+            <Separator/>
             <MenuItem x:Name="ConfigContext" Header="Открыть config.yml" Click="ConfigContext_Click" />
             <MenuItem x:Name="ProjectConfigContext" Header="Открыть конфиг проекта" Click="ProjectConfigContext_Click" />
             <MenuItem x:Name="ConvertDBsContext" Header="Конвертировать БД проектов" Click="ConvertDBsContext_Click" />
             <MenuItem x:Name="RemoveProjectDataContext" Header="Удалить БД и домашний каталог выбранного проекта" Click="RemoveProjectDataContext_Click" />
             <MenuItem x:Name="RemoveInstance" Header="Убрать экземпляр RX из списка" Click="RemoveInstance_Click" />
-            <MenuItem x:Name="OpenRXFolder" Header="Открыть папку экземпляра RX" Icon="📁" Click="OpenRXFolder_Click" />
+            <Separator/>
+            <MenuItem x:Name="OpenRXFolder" Header="Открыть папку экземпляра RX" Click="OpenRXFolder_Click" />
             <MenuItem x:Name="OpenLogFolder" Header="Открыть папку логов" Click="OpenLogFolder_Click" />
           </ContextMenu>
         </DataGrid.ContextMenu>
       </DataGrid>
-    </Grid>
+    </Border>
   </Grid>
 </Window>

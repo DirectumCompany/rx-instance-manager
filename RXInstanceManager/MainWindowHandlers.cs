@@ -128,6 +128,7 @@ namespace RXInstanceManager
         GridInstances.SelectedItem = null;
         GridInstances.MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
       }
+      ApplyInstancesGridHeight();
     }
 
     private void LoadInstancesItems(string instancePath)
@@ -150,6 +151,7 @@ namespace RXInstanceManager
         GridInstances.ScrollIntoView(item);
         GridInstances.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
       }
+      ApplyInstancesGridHeight();
     }
 
 #endregion
@@ -179,7 +181,6 @@ namespace RXInstanceManager
       ButtonCDSStart.Visibility = Visibility.Collapsed;
       ButtonRXStart.Visibility = Visibility.Collapsed;
       ButtonLogViewer.Visibility = Visibility.Collapsed;
-      ButtonSourcesFolder.Visibility = Visibility.Collapsed;
 
       var IsVisibleContextButton = instance == null || string.IsNullOrEmpty(instance.Code) ? Visibility.Collapsed : Visibility.Visible;
 
@@ -215,7 +216,6 @@ namespace RXInstanceManager
             ButtonLogViewer.Visibility = Visibility.Visible;
           else
             ButtonLogViewer.Visibility = Visibility.Collapsed;
-          ButtonSourcesFolder.Visibility = Visibility.Visible;
           break;
         case Constants.InstanceStatus.Working:
           ButtonDDSStart.Visibility = Visibility.Visible;
@@ -227,7 +227,6 @@ namespace RXInstanceManager
             ButtonLogViewer.Visibility = Visibility.Visible;
           else
             ButtonLogViewer.Visibility = Visibility.Collapsed;
-          ButtonSourcesFolder.Visibility = Visibility.Visible;
           break;
         case Constants.InstanceStatus.Update:
           ButtonDDSStart.Visibility = Visibility.Visible;
@@ -238,7 +237,6 @@ namespace RXInstanceManager
           ButtonStop.Visibility = Visibility.Visible;
           ButtonStop.IsEnabled = false;
           ButtonStart.Visibility = Visibility.Collapsed;
-          ButtonSourcesFolder.Visibility = Visibility.Visible;
           if (_configRxInstMan.LogViewerExists)
             ButtonLogViewer.Visibility = Visibility.Visible;
           else

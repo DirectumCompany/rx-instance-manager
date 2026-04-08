@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using System.Reflection;
 using System.Windows.Forms;
 using System.Threading.Tasks;
@@ -85,7 +86,57 @@ namespace RXInstanceManager
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
+      ApplyPreferredWindowWidth();
+      ApplyInstancesGridHeight();
+      Dispatcher.BeginInvoke(new Action(ApplyInstancesGridHeight), DispatcherPriority.Loaded);
       StartAsyncHandlers();
+    }
+
+    /// <summary>
+    /// Set window width to fit DataGrid columns without horizontal scroll, capped at 90% of primary screen width (DIP).
+    /// </summary>
+    private void ApplyPreferredWindowWidth()
+    {
+      double columnsTotal = 0;
+      foreach (DataGridColumn col in GridInstances.Columns)
+      {
+        if (col.Width.IsAbsolute)
+          columnsTotal += col.Width.Value;
+      }
+
+      const double borderHorizontalMargins = 32;
+      double verticalScrollReserve = SystemParameters.VerticalScrollBarWidth;
+      const double chromeFudge = 40;
+      double needed = columnsTotal + borderHorizontalMargins + verticalScrollReserve + chromeFudge;
+
+      double maxAllowed = SystemParameters.PrimaryScreenWidth * 0.9;
+      double minW = MinWidth > 0 ? MinWidth : 960;
+      Width = Math.Max(minW, Math.Min(needed, maxAllowed));
+    }
+
+    /// <summary>
+    /// Binds DataGrid viewport height to the card: explicit Height so the internal ScrollViewer gets a finite
+    /// extent (Stretch + only MaxHeight often yields no vertical scroll in WPF).
+    /// </summary>
+    private void ApplyInstancesGridHeight()
+    {
+      GridInstances.UpdateLayout();
+      double cardH = InstancesCardBorder.ActualHeight;
+      if (cardH > 1)
+        UpdateInstancesGridHeightForCard(cardH);
+    }
+
+    private void InstancesCardBorder_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+      if (e.NewSize.Height > 1)
+        UpdateInstancesGridHeightForCard(e.NewSize.Height);
+    }
+
+    private void UpdateInstancesGridHeightForCard(double cardHeight)
+    {
+      GridInstances.ClearValue(FrameworkElement.MinHeightProperty);
+      GridInstances.ClearValue(FrameworkElement.MaxHeightProperty);
+      GridInstances.Height = cardHeight;
     }
 
     private void GridInstances_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -484,15 +535,6 @@ namespace RXInstanceManager
       else
         System.Windows.MessageBox.Show($"Папка {_instance.LogFolder} не существует.", "", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
     }
-
-    private void ButtonSourcesFolder_Click(object sender, RoutedEventArgs e)
-    {
-      if (Directory.Exists(_instance.WorkingRepositoryName))
-        AppHandlers.LaunchProcess(_instance.WorkingRepositoryName);
-      else
-        System.Windows.MessageBox.Show($"Папка {_instance.WorkingRepositoryName} не существует.", "", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-    }
-
 
     private void ClearLogAllInstancesContext_Click(object sender, RoutedEventArgs e)
     {

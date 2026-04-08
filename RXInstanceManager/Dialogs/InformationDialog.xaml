@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RXInstanceManager"
         mc:Ignorable="d"
-        Title="Инструкция" ResizeMode="NoResize" Background="#222b34" SizeToContent="WidthAndHeight" Activated="Window_Activated">
+        Title="Инструкция" ResizeMode="NoResize" Background="#F8FAFC" SizeToContent="WidthAndHeight" Activated="Window_Activated">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -24,6 +24,6 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="20" />
         </Grid.RowDefinitions>
-        <TextBox x:Name="Input" Grid.Row="1" Grid.Column="1" Width="900" Height="450" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" FontFamily="Courier New"/>
+        <TextBox x:Name="Input" Grid.Row="1" Grid.Column="1" Width="900" Height="450" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" FontFamily="Cascadia Mono, Consolas, Courier New" FontSize="12" Padding="12" BorderBrush="#E2E8F0" BorderThickness="1" Background="White"/>
     </Grid>
 </Window>
