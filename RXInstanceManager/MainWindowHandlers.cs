@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
@@ -12,6 +13,36 @@ namespace RXInstanceManager
   public partial class MainWindow : Window
   {
     #region Работа с Grid.
+
+    /// <summary>
+    /// YamlDotNet may attach nested mappings as Dictionary&lt;object, object&gt; rather than string-keyed dictionary.
+    /// </summary>
+    private static Dictionary<string, object> GetContextMenuMap(object raw)
+    {
+      if (raw == null)
+        return new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+
+      if (raw is IDictionary<string, object> sd)
+        return new Dictionary<string, object>(sd, StringComparer.OrdinalIgnoreCase);
+
+      if (raw is IDictionary<object, object> od)
+      {
+        var d = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        foreach (KeyValuePair<object, object> kv in od)
+          d[kv.Key != null ? kv.Key.ToString() : string.Empty] = kv.Value;
+        return d;
+      }
+
+      if (raw is IDictionary legacy)
+      {
+        var d = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        foreach (DictionaryEntry e in legacy)
+          d[e.Key != null ? e.Key.ToString() : string.Empty] = e.Value;
+        return d;
+      }
+
+      throw new InvalidOperationException("rxman.config: contextMenu must be a YAML mapping.");
+    }
 
     private void LoadConfig()
     {
@@ -27,18 +58,18 @@ namespace RXInstanceManager
         contextMenu.CloneProject = true;
         contextMenu.UpdateConfig = true;
         contextMenu.CheckServices = true;
-        contextMenu.RunDDSWithOutDeploy = true;
-        contextMenu.InfoContext = true;
+        contextMenu.RunDDSWithOutDeploy = false;
+        contextMenu.InfoContext = false;
         contextMenu.CmdAdminContext = true;
         contextMenu.ClearLogContext = true;
         contextMenu.ClearLogAllInstancesContext = true;
-        contextMenu.ConfigContext = true;
-        contextMenu.ProjectConfigContext = true;
-        contextMenu.ConvertDBsContext = true;
+        contextMenu.ConfigContext = false;
+        contextMenu.ProjectConfigContext = false;
+        contextMenu.ConvertDBsContext = false;
         contextMenu.RemoveProjectDataContext = true;
         contextMenu.RemoveInstance = true;
-        contextMenu.OpenRXFolder = true;
-        contextMenu.OpenLogFolder = true;
+        contextMenu.OpenRXFolder = false;
+        contextMenu.OpenLogFolder = false;
 
         var config = new Config();
         config.LogViewer = "";
@@ -62,31 +93,42 @@ namespace RXInstanceManager
           _configRxInstMan = new Config();
           var contextMenu = new ContextMenuClass();
           _configRxInstMan.ContextMenu = contextMenu;
-          _configRxInstMan.LogViewer = ymlData.logViewer;
-          _configRxInstMan.LogViewerExists = File.Exists(_configRxInstMan.LogViewer);
-          if (!_configRxInstMan.LogViewerExists)
+          _configRxInstMan.LogViewer = ymlData.logViewer != null ? ymlData.logViewer.ToString() : string.Empty;
+          _configRxInstMan.LogViewerExists = !string.IsNullOrWhiteSpace(_configRxInstMan.LogViewer) && File.Exists(_configRxInstMan.LogViewer);
+          if (!string.IsNullOrWhiteSpace(_configRxInstMan.LogViewer) && !_configRxInstMan.LogViewerExists)
             AppHandlers.logger.Error(string.Format("Файл LogViewer {0} не найден", _configRxInstMan.LogViewer));
-          _configRxInstMan.NeedCheckAfterSet = (ymlData.needCheckAfterSet == "true") ? true : false;
+          _configRxInstMan.NeedCheckAfterSet = ymlData.needCheckAfterSet is bool needCheck
+            ? needCheck
+            : string.Equals(ymlData.needCheckAfterSet?.ToString(), "true", StringComparison.OrdinalIgnoreCase);
 
-          Func<string, bool> getContext = (contextMenuItem) => !ymlData.contextMenu.ContainsKey(contextMenuItem) || ymlData.contextMenu[contextMenuItem] == "true" ? true : false;
+          object contextMenuRaw = ((IDictionary<string, object>)ymlData).TryGetValue("contextMenu", out object cm) ? cm : null;
+          var menu = GetContextMenuMap(contextMenuRaw);
+          bool GetContext(string key)
+          {
+            if (!menu.TryGetValue(key, out object v))
+              return true;
+            if (v is bool b)
+              return b;
+            return string.Equals(v?.ToString(), "true", StringComparison.OrdinalIgnoreCase);
+          }
 
-          _configRxInstMan.ContextMenu.ChangeProject = getContext("changeProject");
-          _configRxInstMan.ContextMenu.CreateProject = getContext("createProject");
-          _configRxInstMan.ContextMenu.CloneProject = getContext("cloneProject");
-          _configRxInstMan.ContextMenu.UpdateConfig = getContext("updateConfig");
-          _configRxInstMan.ContextMenu.CheckServices = getContext("checkServices");
-          _configRxInstMan.ContextMenu.RunDDSWithOutDeploy = getContext("runDDSWithOutDeploy");
-          _configRxInstMan.ContextMenu.InfoContext = getContext("infoContext");
-          _configRxInstMan.ContextMenu.CmdAdminContext = getContext("cmdAdminContext");
-          _configRxInstMan.ContextMenu.ClearLogContext = getContext("clearLogContext");
-          _configRxInstMan.ContextMenu.ClearLogAllInstancesContext = getContext("clearLogAllInstancesContext");
-          _configRxInstMan.ContextMenu.ConfigContext = getContext("configContext");
-          _configRxInstMan.ContextMenu.ProjectConfigContext = getContext("projectConfigContext");
-          _configRxInstMan.ContextMenu.ConvertDBsContext = getContext("convertDBsContext");
-          _configRxInstMan.ContextMenu.RemoveProjectDataContext = getContext("removeProjectDataContext");
-          _configRxInstMan.ContextMenu.RemoveInstance = getContext("removeInstance");
-          _configRxInstMan.ContextMenu.OpenRXFolder = getContext("openRXFolder");
-          _configRxInstMan.ContextMenu.OpenLogFolder = getContext("openLogFolder");
+          _configRxInstMan.ContextMenu.ChangeProject = GetContext("changeProject");
+          _configRxInstMan.ContextMenu.CreateProject = GetContext("createProject");
+          _configRxInstMan.ContextMenu.CloneProject = GetContext("cloneProject");
+          _configRxInstMan.ContextMenu.UpdateConfig = GetContext("updateConfig");
+          _configRxInstMan.ContextMenu.CheckServices = GetContext("checkServices");
+          _configRxInstMan.ContextMenu.RunDDSWithOutDeploy = GetContext("runDDSWithOutDeploy");
+          _configRxInstMan.ContextMenu.InfoContext = GetContext("infoContext");
+          _configRxInstMan.ContextMenu.CmdAdminContext = GetContext("cmdAdminContext");
+          _configRxInstMan.ContextMenu.ClearLogContext = GetContext("clearLogContext");
+          _configRxInstMan.ContextMenu.ClearLogAllInstancesContext = GetContext("clearLogAllInstancesContext");
+          _configRxInstMan.ContextMenu.ConfigContext = GetContext("configContext");
+          _configRxInstMan.ContextMenu.ProjectConfigContext = GetContext("projectConfigContext");
+          _configRxInstMan.ContextMenu.ConvertDBsContext = GetContext("convertDBsContext");
+          _configRxInstMan.ContextMenu.RemoveProjectDataContext = GetContext("removeProjectDataContext");
+          _configRxInstMan.ContextMenu.RemoveInstance = GetContext("removeInstance");
+          _configRxInstMan.ContextMenu.OpenRXFolder = GetContext("openRXFolder");
+          _configRxInstMan.ContextMenu.OpenLogFolder = GetContext("openLogFolder");
 
         }
         catch (Exception ex)
