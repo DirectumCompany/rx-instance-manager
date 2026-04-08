@@ -48,7 +48,7 @@ namespace RXInstanceManager
           if (File.Exists(configYamlPath))
           {
             var changeTime = AppHelper.GetFileChangeTime(configYamlPath);
-            if (instance.ConfigChanged == null || changeTime.MoreThanUpToSeconds(inst.ConfigChanged))
+            if (changeTime.MoreThanUpToSeconds(inst.ConfigChanged))
             {
               using (var reader = new StreamReader(configYamlPath))
               {
