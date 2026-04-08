@@ -9,13 +9,16 @@
   <Color x:Key="Color.TextPrimary">#0F172A</Color>
   <Color x:Key="Color.TextSecondary">#64748B</Color>
   <Color x:Key="Color.Chrome">#1E293B</Color>
-  <Color x:Key="Color.Accent">#2563EB</Color>
-  <Color x:Key="Color.AccentHover">#1D4ED8</Color>
-  <Color x:Key="Color.Success">#059669</Color>
-  <Color x:Key="Color.Danger">#DC2626</Color>
+  <!-- Toolbar: desaturated hues so all actions read as one family on dark chrome -->
+  <Color x:Key="Color.Accent">#4868E6</Color>
+  <Color x:Key="Color.AccentHover">#3D5BD4</Color>
+  <Color x:Key="Color.Success">#3A9170</Color>
+  <Color x:Key="Color.Danger">#B84D5C</Color>
   <Color x:Key="Color.Warning">#D97706</Color>
-  <Color x:Key="Color.Violet">#7C3AED</Color>
-  <Color x:Key="Color.Teal">#0D9488</Color>
+  <Color x:Key="Color.Violet">#6F68D4</Color>
+  <Color x:Key="Color.Teal">#2D948A</Color>
+  <Color x:Key="Color.Sky">#3F8FD4</Color>
+  <Color x:Key="Color.ToolMuted">#5A6B80</Color>
   <Color x:Key="Color.Slate">#475569</Color>
   <Color x:Key="Color.Selection">#DBEAFE</Color>
 
@@ -31,6 +34,8 @@
   <SolidColorBrush x:Key="Brush.Warning" Color="{StaticResource Color.Warning}"/>
   <SolidColorBrush x:Key="Brush.Violet" Color="{StaticResource Color.Violet}"/>
   <SolidColorBrush x:Key="Brush.Teal" Color="{StaticResource Color.Teal}"/>
+  <SolidColorBrush x:Key="Brush.Sky" Color="{StaticResource Color.Sky}"/>
+  <SolidColorBrush x:Key="Brush.ToolMuted" Color="{StaticResource Color.ToolMuted}"/>
   <SolidColorBrush x:Key="Brush.Slate" Color="{StaticResource Color.Slate}"/>
   <SolidColorBrush x:Key="Brush.Selection" Color="{StaticResource Color.Selection}"/>
   <SolidColorBrush x:Key="Brush.GridLine" Color="#E8EDF3"/>
@@ -198,13 +203,13 @@
     <Setter Property="Background" Value="{StaticResource Brush.Teal}"/>
   </Style>
   <Style x:Key="ToolbarButtonSky" TargetType="Button" BasedOn="{StaticResource ToolbarButtonChrome}">
-    <Setter Property="Background" Value="#0284C7"/>
+    <Setter Property="Background" Value="{StaticResource Brush.Sky}"/>
   </Style>
   <Style x:Key="ToolbarButtonWarning" TargetType="Button" BasedOn="{StaticResource ToolbarButtonChrome}">
     <Setter Property="Background" Value="{StaticResource Brush.Warning}"/>
   </Style>
   <Style x:Key="ToolbarButtonMuted" TargetType="Button" BasedOn="{StaticResource ToolbarButtonChrome}">
-    <Setter Property="Background" Value="{StaticResource Brush.Slate}"/>
+    <Setter Property="Background" Value="{StaticResource Brush.ToolMuted}"/>
   </Style>
   <!-- Legacy key used across MainWindow — maps to new toolbar style -->
   <Style x:Key="RecordActionButton" TargetType="Button" BasedOn="{StaticResource ToolbarButtonChrome}">
