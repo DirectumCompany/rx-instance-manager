@@ -53,6 +53,7 @@ namespace RXInstanceManager
       {
         var contextMenu = new ContextMenuClass();
 
+        contextMenu.CopyContext = true;
         contextMenu.ChangeProject = true;
         contextMenu.CreateProject = true;
         contextMenu.CloneProject = true;
@@ -113,6 +114,7 @@ namespace RXInstanceManager
           }
 
           _configRxInstMan.ContextMenu.ChangeProject = GetContext("changeProject");
+          _configRxInstMan.ContextMenu.CopyContext = GetContext("copyContext");
           _configRxInstMan.ContextMenu.CreateProject = GetContext("createProject");
           _configRxInstMan.ContextMenu.CloneProject = GetContext("cloneProject");
           _configRxInstMan.ContextMenu.UpdateConfig = GetContext("updateConfig");
@@ -227,6 +229,7 @@ namespace RXInstanceManager
       var IsVisibleContextButton = instance == null || string.IsNullOrEmpty(instance.Code) ? Visibility.Collapsed : Visibility.Visible;
 
       Func<bool, Visibility> isVisibleContextButton = (need_show) => !need_show || instance == null || string.IsNullOrEmpty(instance.Code) ? Visibility.Collapsed : Visibility.Visible;
+      CopyContext.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.CopyContext);
       ChangeProject.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.ChangeProject);
       CreateProject.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.CreateProject);
       CloneProject.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.CloneProject);

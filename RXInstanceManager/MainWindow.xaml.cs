@@ -721,6 +721,46 @@ namespace RXInstanceManager
         System.Windows.MessageBox.Show($"Папка {_instance.LogFolder} не существует.", "", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
     }
 
+    private void CopyDBNameContext_Click(object sender, RoutedEventArgs e)
+    {
+      if (_instance == null)
+        return;
+
+      System.Windows.Clipboard.SetText(_instance.DBName ?? string.Empty);
+    }
+
+    private void CopyUrlContext_Click(object sender, RoutedEventArgs e)
+    {
+      if (_instance == null)
+        return;
+
+      System.Windows.Clipboard.SetText(_instance.URL ?? string.Empty);
+    }
+
+    private void CopyIntegrationUrlContext_Click(object sender, RoutedEventArgs e)
+    {
+      if (_instance == null || string.IsNullOrWhiteSpace(_instance.URL))
+        return;
+
+      if (Uri.TryCreate(_instance.URL, UriKind.Absolute, out Uri webClientUri))
+      {
+        var integrationUri = new Uri(webClientUri, "/Integration/odata");
+        System.Windows.Clipboard.SetText(integrationUri.ToString());
+        return;
+      }
+
+      string integrationUrl = _instance.URL.Replace("/Client", "/Integration/odata");
+      System.Windows.Clipboard.SetText(integrationUrl);
+    }
+
+    private void CopyVersionContext_Click(object sender, RoutedEventArgs e)
+    {
+      if (_instance == null)
+        return;
+
+      System.Windows.Clipboard.SetText(_instance.SolutionVersion ?? string.Empty);
+    }
+
     private void ChangeGridStatus(Instance instance, string status)
     {
       instance.Status = status;

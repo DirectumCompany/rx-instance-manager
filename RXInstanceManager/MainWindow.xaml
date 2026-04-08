@@ -83,6 +83,13 @@
         </DataGrid.Columns>
         <DataGrid.ContextMenu>
           <ContextMenu x:Name="InstancesContextMenu">
+            <MenuItem x:Name="CopyContext" Header="Скопировать">
+              <MenuItem Header="Имя БД" Click="CopyDBNameContext_Click" />
+              <MenuItem Header="URL веб-клиента" Click="CopyUrlContext_Click" />
+              <MenuItem Header="URL сервис интеграции" Click="CopyIntegrationUrlContext_Click" />
+              <MenuItem Header="Версия" Click="CopyVersionContext_Click" />
+            </MenuItem>
+            <Separator/>
             <MenuItem x:Name="ChangeProject" Header="Сменить проект" Click="ChangeProject_ClickAsync" />
             <MenuItem x:Name="CreateProject" Header="Создать проект" Click="CreateProject_ClickAsync" />
             <MenuItem x:Name="CloneProject" Header="Создать копию текущего проекта" Click="CloneProject_Click" />

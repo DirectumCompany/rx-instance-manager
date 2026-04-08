@@ -3,6 +3,7 @@ namespace RXInstanceManager
 
   public class ContextMenuClass
   {
+    public bool CopyContext { get; set; } //Скопировать
     public bool ChangeProject { get; set; } //Сменить проект
     public bool CreateProject { get; set; } //Создать проект
     public bool CloneProject { get; set; } //Создать копию текущего проекта
