@@ -269,7 +269,7 @@ namespace RXInstanceManager
         {
           // ERROR_CANCELLED (1223) — user dismissed UAC or operation cancelled (locale-independent)
           if (ex.NativeErrorCode != 1223)
-            throw ex;
+            throw;
         }
       }
     }

@@ -92,7 +92,7 @@ namespace RXInstanceManager
         catch (Exception ex)
         {
           AppHandlers.logger.Error(ex.Message);
-          throw ex;
+          throw;
         }
       }
     }
