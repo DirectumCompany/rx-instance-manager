@@ -40,21 +40,128 @@
   <SolidColorBrush x:Key="Brush.Selection" Color="{StaticResource Color.Selection}"/>
   <SolidColorBrush x:Key="Brush.GridLine" Color="#E8EDF3"/>
 
+  <!-- Default WPF ContextMenu template draws a gray vertical line next to ItemsPresenter; replace the whole template. -->
   <Style TargetType="ContextMenu">
+    <Setter Property="OverridesDefaultStyle" Value="True"/>
     <Setter Property="Background" Value="{StaticResource Brush.Card}"/>
     <Setter Property="BorderBrush" Value="{StaticResource Brush.Border}"/>
     <Setter Property="BorderThickness" Value="1"/>
-    <Setter Property="Padding" Value="4,6"/>
+    <Setter Property="Padding" Value="2,3"/>
     <Setter Property="SnapsToDevicePixels" Value="True"/>
     <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ContextMenu">
+          <Border Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  Padding="{TemplateBinding Padding}"
+                  SnapsToDevicePixels="True">
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled"
+                          CanContentScroll="True">
+              <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle"
+                              KeyboardNavigation.TabNavigation="Cycle"
+                              SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+            </ScrollViewer>
+          </Border>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
   </Style>
   <Style TargetType="Separator">
-    <Setter Property="Margin" Value="8,4"/>
+    <Setter Property="Margin" Value="4,2"/>
+    <Setter Property="Height" Value="1"/>
     <Setter Property="Background" Value="{StaticResource Brush.Border}"/>
   </Style>
+  <Geometry x:Key="Geometry.MenuSubmenuArrow">M 0,0 L 4,3.5 L 0,7 Z</Geometry>
+
+  <!-- Flat template: no icon column, no vertical separator line inside submenus (default WPF MenuItem draws both). -->
   <Style TargetType="MenuItem">
-    <Setter Property="Padding" Value="12,8"/>
-    <Setter Property="FontSize" Value="13"/>
+    <Setter Property="OverridesDefaultStyle" Value="True"/>
+    <Setter Property="Background" Value="Transparent"/>
+    <Setter Property="BorderBrush" Value="Transparent"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="Padding" Value="8,3"/>
+    <Setter Property="FontSize" Value="12"/>
+    <Setter Property="MinHeight" Value="22"/>
+    <Setter Property="SnapsToDevicePixels" Value="True"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="MenuItem">
+          <Border x:Name="templateRoot"
+                  Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  SnapsToDevicePixels="True">
+            <Grid SnapsToDevicePixels="True">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <ContentPresenter x:Name="HeaderPresenter"
+                                  Grid.Column="0"
+                                  ContentSource="Header"
+                                  RecognizesAccessKey="True"
+                                  Margin="{TemplateBinding Padding}"
+                                  VerticalAlignment="Center"
+                                  HorizontalAlignment="Stretch"
+                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+              <Path x:Name="SubmenuArrow"
+                    Grid.Column="1"
+                    Data="{StaticResource Geometry.MenuSubmenuArrow}"
+                    Fill="{TemplateBinding Foreground}"
+                    VerticalAlignment="Center"
+                    Margin="4,0,6,0"
+                    Visibility="Collapsed"/>
+              <Popup x:Name="PART_Popup"
+                     AllowsTransparency="True"
+                     Focusable="False"
+                     Placement="Right"
+                     HorizontalOffset="-2"
+                     VerticalOffset="-3"
+                     IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                     PlacementTarget="{Binding ElementName=templateRoot}"
+                     PopupAnimation="{DynamicResource {x:Static SystemParameters.MenuPopupAnimationKey}}">
+                <Border Background="{StaticResource Brush.Card}"
+                        BorderBrush="{StaticResource Brush.Border}"
+                        BorderThickness="1"
+                        Padding="2,3"
+                        SnapsToDevicePixels="True">
+                  <ScrollViewer MaxHeight="480"
+                                VerticalScrollBarVisibility="Auto"
+                                HorizontalScrollBarVisibility="Disabled"
+                                CanContentScroll="True">
+                    <ItemsPresenter x:Name="ItemsPresenter"
+                                    KeyboardNavigation.DirectionalNavigation="Cycle"
+                                    KeyboardNavigation.TabNavigation="Cycle"
+                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                  </ScrollViewer>
+                </Border>
+              </Popup>
+            </Grid>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="HasItems" Value="True">
+              <Setter TargetName="SubmenuArrow" Property="Visibility" Value="Visible"/>
+            </Trigger>
+            <Trigger Property="IsHighlighted" Value="True">
+              <Setter TargetName="templateRoot" Property="Background" Value="{StaticResource Brush.Selection}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+              <Setter TargetName="templateRoot" Property="TextElement.Foreground" Value="{StaticResource Brush.TextSecondary}"/>
+            </Trigger>
+            <MultiTrigger>
+              <MultiTrigger.Conditions>
+                <Condition Property="IsHighlighted" Value="True"/>
+                <Condition Property="IsEnabled" Value="False"/>
+              </MultiTrigger.Conditions>
+              <Setter TargetName="templateRoot" Property="Background" Value="Transparent"/>
+            </MultiTrigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
   </Style>
 
   <Style x:Key="ColumnHeaderStyle" TargetType="DataGridColumnHeader">

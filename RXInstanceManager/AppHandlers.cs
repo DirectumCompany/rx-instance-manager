@@ -47,7 +47,9 @@ namespace RXInstanceManager
           inst.DBName = dbName ?? string.Empty;
 
           inst.Name = ymlData.variables["purpose"];
-          inst.ProjectConfigPath = ymlData.variables["project_config_path"];
+          inst.PlatformVersion = GetInstancePlatformVersion(inst.InstancePath);
+          inst.SolutionVersion = GetInstanceSolutionVersion(inst.InstancePath);
+          inst.ProjectConfigPath = AppHelper.GetProjectConfigPath(ymlData, inst.PlatformVersion);
 
           inst.Port = Convert.ToInt32(ymlData.variables["http_port"]);
           inst.URL = AppHelper.GetClientURL(protocol, host, inst.Port);
@@ -61,8 +63,6 @@ namespace RXInstanceManager
           inst.SourcesPath = ymlData.services_config["DevelopmentStudio"]["GIT_ROOT_DIRECTORY"];
           if (inst.SourcesPath == "{{ home_path_src }}")
             inst.SourcesPath = ymlData.variables["home_path_src"];
-          inst.PlatformVersion = GetInstancePlatformVersion(inst.InstancePath);
-          inst.SolutionVersion = GetInstanceSolutionVersion(inst.InstancePath);
 
           var repositories = ymlData.services_config["DevelopmentStudio"]["REPOSITORIES"]["repository"];
           inst.WorkingRepositoryName = String.Empty;
@@ -258,18 +258,44 @@ namespace RXInstanceManager
         if (asAdmin)
           process.StartInfo.Verb = "runas";
 
+        logger.Info(string.Format(
+          "LaunchProcess: FileName={0}, Arguments={1}, AsAdmin={2}, WaitForExit={3}, Verb={4}",
+          process.StartInfo.FileName,
+          string.IsNullOrEmpty(process.StartInfo.Arguments) ? "(none)" : process.StartInfo.Arguments,
+          asAdmin,
+          waitForExit,
+          process.StartInfo.Verb ?? "(none)"));
+
         try
         {
           process.Start();
 
           if (waitForExit)
+          {
             process.WaitForExit();
+            logger.Info(string.Format(
+              "LaunchProcess finished: FileName={0}, ExitCode={1}",
+              process.StartInfo.FileName,
+              process.ExitCode));
+          }
         }
         catch (System.ComponentModel.Win32Exception ex)
         {
           // ERROR_CANCELLED (1223) — user dismissed UAC or operation cancelled (locale-independent)
-          if (ex.NativeErrorCode != 1223)
-            throw;
+          if (ex.NativeErrorCode == 1223)
+          {
+            logger.Info(string.Format(
+              "LaunchProcess cancelled (UAC): FileName={0}, Arguments={1}",
+              process.StartInfo.FileName,
+              string.IsNullOrEmpty(process.StartInfo.Arguments) ? "(none)" : process.StartInfo.Arguments));
+            return;
+          }
+
+          logger.Error(ex, string.Format(
+            "LaunchProcess failed: FileName={0}, Arguments={1}",
+            process.StartInfo.FileName,
+            string.IsNullOrEmpty(process.StartInfo.Arguments) ? "(none)" : process.StartInfo.Arguments));
+          throw;
         }
       }
     }

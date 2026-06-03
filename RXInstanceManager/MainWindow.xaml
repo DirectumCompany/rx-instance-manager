@@ -73,7 +73,7 @@
                 SelectionChanged="GridInstances_SelectionChanged" >
         <DataGrid.Columns>
           <DataGridTextColumn Binding="{Binding InstancePath}" Header="Путь" Width="150" />
-          <DataGridTextColumn Binding="{Binding SolutionVersion}" Header="Версия" Width="80" />
+          <DataGridTextColumn Binding="{Binding PlatformVersion}" Header="Версия" Width="80" />
           <DataGridTextColumn Binding="{Binding Status}" Header="Статус" Width="90" />
           <DataGridTextColumn Binding="{Binding URL}" Header="URL" Width="200" />
           <DataGridTextColumn Binding="{Binding Name}" Header="Назначение" Width="250" />
@@ -82,17 +82,18 @@
           <DataGridTextColumn Binding="{Binding DBName}" Header="Имя БД" Width="170" />
         </DataGrid.Columns>
         <DataGrid.ContextMenu>
-          <ContextMenu x:Name="InstancesContextMenu">
+          <ContextMenu x:Name="InstancesContextMenu" Opened="InstancesContextMenu_Opened">
             <MenuItem x:Name="CopyContext" Header="Скопировать">
               <MenuItem Header="Имя БД" Click="CopyDBNameContext_Click" />
               <MenuItem Header="URL веб-клиента" Click="CopyUrlContext_Click" />
-              <MenuItem Header="URL сервис интеграции" Click="CopyIntegrationUrlContext_Click" />
-              <MenuItem Header="Версия" Click="CopyVersionContext_Click" />
+              <MenuItem Header="URL сервиса интеграции" Click="CopyIntegrationUrlContext_Click" />
+              <MenuItem Header="Версия RX" Click="CopyVersionContext_Click" />
+              <MenuItem Header="Версия Sungero" Click="CopyPlatformVersionContext_Click" />
             </MenuItem>
             <Separator/>
-            <MenuItem x:Name="ChangeProject" Header="Сменить проект" Click="ChangeProject_ClickAsync" />
-            <MenuItem x:Name="CreateProject" Header="Создать проект" Click="CreateProject_ClickAsync" />
-            <MenuItem x:Name="CloneProject" Header="Создать копию текущего проекта" Click="CloneProject_Click" />
+            <MenuItem x:Name="ChangeProject" Header="Сменить проект" />
+            <MenuItem x:Name="CreateProject" Header="Создать проект" />
+            <MenuItem x:Name="CloneProject" Header="Создать копию текущего проекта" />
             <MenuItem x:Name="UpdateConfig" Header="Пропатчить config.yml" Click="UpdateConfig_Click" />
             <MenuItem x:Name="CheckServices" Header="Проверить сервисы" Click="CheckServices_Click" />
             <MenuItem x:Name="RunDDSWithOutDeploy" Header="Открыть DDS без deploy" Click="RunDDSWithOutDeploy_Click" />

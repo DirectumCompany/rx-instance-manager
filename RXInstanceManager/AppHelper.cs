@@ -1,8 +1,12 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using YamlDotNet.Serialization;
 
 namespace RXInstanceManager
 {
@@ -235,6 +239,130 @@ namespace RXInstanceManager
       var date1 = dt1.Date.AddHours(dt1.Hour).AddMinutes(dt1.Minute).AddSeconds(dt1.Second);
       var date2 = dt2.Date.AddHours(dt2.Hour).AddMinutes(dt2.Minute).AddSeconds(dt2.Second);
       return date1 > date2;
+    }
+
+    /// <summary>
+    /// True when platform version is strictly after the 26.1 release line (e.g. 26.2+, 27+).
+    /// </summary>
+    public static bool IsPlatformVersionGreaterThan26_1(string platformVersion)
+    {
+      if (string.IsNullOrWhiteSpace(platformVersion))
+        return false;
+
+      var parts = platformVersion.Split('.');
+      if (parts.Length < 2)
+        return false;
+
+      if (!int.TryParse(parts[0], out int major) || !int.TryParse(parts[1], out int minor))
+        return false;
+
+      if (major > 26)
+        return true;
+      if (major < 26)
+        return false;
+
+      return minor > 1;
+    }
+
+    public static string GetProjectConfigPath(dynamic ymlData, string platformVersion)
+    {
+      if (IsPlatformVersionGreaterThan26_1(platformVersion))
+      {
+        try
+        {
+          var path = ymlData.services_config["DevelopmentStudioDesktop"]["ACTIVE_CONFIGURATION"];
+          return path?.ToString() ?? string.Empty;
+        }
+        catch
+        {
+          return string.Empty;
+        }
+      }
+
+      return ymlData.variables["project_config_path"]?.ToString() ?? string.Empty;
+    }
+
+    public static string GetActiveDesktopConfiguration(string instancePath)
+    {
+      var configYamlPath = GetConfigYamlPath(instancePath);
+      if (!File.Exists(configYamlPath))
+        return string.Empty;
+
+      using (var reader = new StreamReader(configYamlPath))
+      {
+        var deserializer = new DeserializerBuilder().Build();
+        dynamic ymlData = deserializer.Deserialize<ExpandoObject>(reader.ReadToEnd());
+        try
+        {
+          var active = ymlData.services_config["DevelopmentStudioDesktop"]["ACTIVE_CONFIGURATION"];
+          return active?.ToString() ?? string.Empty;
+        }
+        catch
+        {
+          return string.Empty;
+        }
+      }
+    }
+
+    public static List<string> GetDesktopConfigurationNames(string instancePath, string excludeConfigurationName = null)
+    {
+      var names = new List<string>();
+      var configYamlPath = GetConfigYamlPath(instancePath);
+      if (!File.Exists(configYamlPath))
+        return names;
+
+      using (var reader = new StreamReader(configYamlPath))
+      {
+        var deserializer = new DeserializerBuilder().Build();
+        dynamic ymlData = deserializer.Deserialize<ExpandoObject>(reader.ReadToEnd());
+        try
+        {
+          var configurations = ymlData.services_config["DevelopmentStudioDesktop"]["CONFIGURATIONS"]["configuration"];
+          CollectConfigurationNames(configurations, names, excludeConfigurationName);
+        }
+        catch
+        {
+        }
+      }
+
+      return names;
+    }
+
+    private static void CollectConfigurationNames(dynamic configurations, List<string> names, string excludeConfigurationName)
+    {
+      if (configurations == null)
+        return;
+
+      if (configurations is IEnumerable enumerable && configurations is not string)
+      {
+        foreach (var item in enumerable)
+          AddConfigurationName(item, names, excludeConfigurationName);
+        return;
+      }
+
+      AddConfigurationName(configurations, names, excludeConfigurationName);
+    }
+
+    private static void AddConfigurationName(dynamic configuration, List<string> names, string excludeConfigurationName)
+    {
+      if (configuration == null)
+        return;
+
+      try
+      {
+        var name = configuration["@name"]?.ToString();
+        if (string.IsNullOrWhiteSpace(name))
+          return;
+
+        if (!string.IsNullOrWhiteSpace(excludeConfigurationName) &&
+            string.Equals(name, excludeConfigurationName, StringComparison.OrdinalIgnoreCase))
+          return;
+
+        names.Add(name);
+      }
+      catch
+      {
+      }
     }
   }
 }

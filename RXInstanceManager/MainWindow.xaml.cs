@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Windows.Forms;
 using System.Threading.Tasks;
 using Microsoft.Win32;
+using NLog;
 
 namespace RXInstanceManager
 {
@@ -302,7 +303,53 @@ namespace RXInstanceManager
       }
     }
 
-    private async void ChangeProject_ClickAsync(object sender, RoutedEventArgs e)
+    private void InstancesContextMenu_Opened(object sender, RoutedEventArgs e)
+    {
+      UpdateChangeProjectMenu();
+      UpdateCreateProjectMenu();
+      UpdateCloneProjectMenu();
+    }
+
+    private void UpdateChangeProjectMenu()
+    {
+      ChangeProject.Click -= ChangeProjectFromFile_ClickAsync;
+      ChangeProject.Items.Clear();
+
+      var instance = _instance;
+      if (instance == null || string.IsNullOrEmpty(instance.Code))
+        return;
+
+      if (!AppHelper.IsPlatformVersionGreaterThan26_1(instance.PlatformVersion))
+      {
+        ChangeProject.Click += ChangeProjectFromFile_ClickAsync;
+        return;
+      }
+
+      var configurationNames = AppHelper.GetDesktopConfigurationNames(instance.InstancePath);
+      if (configurationNames.Count == 0)
+      {
+        ChangeProject.Items.Add(new MenuItem { Header = "(нет конфигураций)", IsEnabled = false });
+        return;
+      }
+
+      foreach (var name in configurationNames)
+      {
+        var item = new MenuItem { Header = name, Tag = name };
+        item.Click += ChangeProjectConfiguration_ClickAsync;
+        ChangeProject.Items.Add(item);
+      }
+    }
+
+    private async void ChangeProjectConfiguration_ClickAsync(object sender, RoutedEventArgs e)
+    {
+      var configurationName = ((MenuItem)sender).Tag as string;
+      if (string.IsNullOrWhiteSpace(configurationName))
+        return;
+
+      await RunChangeProjectFromConfigurationAsync(_instance, configurationName);
+    }
+
+    private async void ChangeProjectFromFile_ClickAsync(object sender, RoutedEventArgs e)
     {
       var instance = _instance;
       AppHandlers.InfoHandler(instance, MethodBase.GetCurrentMethod().Name);
@@ -316,63 +363,158 @@ namespace RXInstanceManager
         openFileDialog.RestoreDirectory = true;
 
         if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-        {
-          var config_filename = openFileDialog.FileName;
-          try
-          {
-            string needCheck = "False";
-            if (_configRxInstMan.NeedCheckAfterSet)
-              needCheck = "True";
-
-            var lastStatus = instance.Status;
-            ChangeGridStatus(instance, Constants.InstanceStatus.Update);
-            await Task.Run(() => AppHandlers.LaunchProcess(AppHelper.GetDoPath(instance.InstancePath),
-                                                           string.Format("map set {0} -rundds=False -need_pause -need_check={1}", config_filename, needCheck),
-                                                           true,
-                                                           true));
-            ChangeGridStatus(instance, lastStatus);
-          }
-          catch (Exception ex)
-          {
-            ChangeGridStatus(instance, Constants.InstanceStatus.Stopped);
-            AppHandlers.ErrorHandler(instance, ex);
-          }
-
-        }
+          await RunChangeProjectFromFileAsync(instance, openFileDialog.FileName);
       }
     }
 
-    private async void CreateProject_ClickAsync(object sender, RoutedEventArgs e)
+    private async Task RunChangeProjectFromConfigurationAsync(Instance instance, string configurationName)
+    {
+      AppHandlers.InfoHandler(instance, MethodBase.GetCurrentMethod().Name);
+
+      string needCheck = _configRxInstMan.NeedCheckAfterSet ? "True" : "False";
+      var lastStatus = instance.Status;
+
+      try
+      {
+        ChangeGridStatus(instance, Constants.InstanceStatus.Update);
+        //await Task.Run(() => AppHandlers.LaunchProcess(AppHelper.GetDoPath(instance.InstancePath),
+         /// string.Format("map set_ds \"'{0}'\" -need_pause -need_check={1}", configurationName, needCheck),
+          //true,
+          //true));
+
+        await Task.Run(() => AppHandlers.LaunchProcess("cmd",
+                                                  string.Format("cmd /K {1} map set_ds  \"'{0}'\"  -need_pause -need_check={2}",
+                                                  configurationName, AppHelper.GetDoPath(instance.InstancePath), needCheck),
+                                                  true, true));
+
+        ChangeGridStatus(instance, lastStatus);
+      }
+      catch (Exception ex)
+      {
+        ChangeGridStatus(instance, Constants.InstanceStatus.Stopped);
+        AppHandlers.ErrorHandler(instance, ex);
+      }
+    }
+
+    private async Task RunChangeProjectFromFileAsync(Instance instance, string configFilePath)
+    {
+      string needCheck = _configRxInstMan.NeedCheckAfterSet ? "True" : "False";
+      var lastStatus = instance.Status;
+
+      try
+      {
+        ChangeGridStatus(instance, Constants.InstanceStatus.Update);
+        await Task.Run(() => AppHandlers.LaunchProcess(AppHelper.GetDoPath(instance.InstancePath),
+          string.Format("map set {0} -rundds=False -need_pause -need_check={1}", configFilePath, needCheck),
+          true,
+          true));
+        ChangeGridStatus(instance, lastStatus);
+      }
+      catch (Exception ex)
+      {
+        ChangeGridStatus(instance, Constants.InstanceStatus.Stopped);
+        AppHandlers.ErrorHandler(instance, ex);
+      }
+    }
+
+    private void UpdateCreateProjectMenu()
+    {
+      CreateProject.Click -= CreateProjectFromFile_ClickAsync;
+      CreateProject.Items.Clear();
+
+      var instance = _instance;
+      if (instance == null || string.IsNullOrEmpty(instance.Code))
+        return;
+
+      if (!AppHelper.IsPlatformVersionGreaterThan26_1(instance.PlatformVersion))
+      {
+        CreateProject.Click += CreateProjectFromFile_ClickAsync;
+        return;
+      }
+
+      var configurationNames = AppHelper.GetDesktopConfigurationNames(instance.InstancePath);
+      if (configurationNames.Count == 0)
+      {
+        CreateProject.Items.Add(new MenuItem { Header = "(нет конфигураций)", IsEnabled = false });
+        return;
+      }
+
+      foreach (var name in configurationNames)
+      {
+        var item = new MenuItem { Header = name, Tag = name };
+        item.Click += CreateProjectConfiguration_ClickAsync;
+        CreateProject.Items.Add(item);
+      }
+    }
+
+    private async void CreateProjectConfiguration_ClickAsync(object sender, RoutedEventArgs e)
+    {
+      var configurationName = ((MenuItem)sender).Tag as string;
+      if (string.IsNullOrWhiteSpace(configurationName))
+        return;
+
+      await RunCreateProjectFromConfigurationAsync(_instance, configurationName);
+    }
+
+    private async void CreateProjectFromFile_ClickAsync(object sender, RoutedEventArgs e)
     {
       var instance = _instance;
       AppHandlers.InfoHandler(instance, MethodBase.GetCurrentMethod().Name);
+
       using (System.Windows.Forms.OpenFileDialog openFileDialog = new System.Windows.Forms.OpenFileDialog())
       {
         var filter = string.Format("configs for {0}|{0}_*.yml;{0}_*.yaml|YAML-файлы|*.yml;*.yaml|All files (*.*)|*.*", instance.Code);
-        openFileDialog.InitialDirectory = string.IsNullOrEmpty(instance.ProjectConfigPath) ? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) : Path.GetDirectoryName(_instance.ProjectConfigPath);
+        openFileDialog.InitialDirectory = string.IsNullOrEmpty(instance.ProjectConfigPath) ? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) : Path.GetDirectoryName(instance.ProjectConfigPath);
         openFileDialog.Filter = filter;
         openFileDialog.FilterIndex = 1;
         openFileDialog.RestoreDirectory = true;
 
-        if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-        {
-          var config_filename = openFileDialog.FileName;
-          try
-          {
-            ChangeGridStatus(instance, Constants.InstanceStatus.Update);
-            await Task.Run(() => AppHandlers.LaunchProcess("cmd",
-                                                      string.Format("cmd /K {1} map create_project {0} -rundds=False -need_pause",
-                                                      config_filename, AppHelper.GetDoPath(instance.InstancePath)),
-                                                      true, true));
-            ChangeGridStatus(instance, Constants.InstanceStatus.Working);
-          }
-          catch (Exception ex)
-          {
-            ChangeGridStatus(instance, Constants.InstanceStatus.Stopped);
-            AppHandlers.ErrorHandler(instance, ex);
-          }
+        if (openFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+          return;
 
-        }
+        await RunCreateProjectFromFileAsync(instance, openFileDialog.FileName);
+      }
+    }
+
+    private async Task RunCreateProjectFromConfigurationAsync(Instance instance, string configurationName)
+    {
+      AppHandlers.InfoHandler(instance, MethodBase.GetCurrentMethod().Name);
+
+      try
+      {
+        ChangeGridStatus(instance, Constants.InstanceStatus.Update);
+
+        await Task.Run(() => AppHandlers.LaunchProcess("cmd",
+                                                  string.Format("cmd /K {1} map create_project_ds  \"'{0}'\"",
+                                                  configurationName, AppHelper.GetDoPath(instance.InstancePath)),
+                                                  true, true));
+
+        ChangeGridStatus(instance, Constants.InstanceStatus.Working);
+      }
+      catch (Exception ex)
+      {
+        ChangeGridStatus(instance, Constants.InstanceStatus.Stopped);
+        AppHandlers.ErrorHandler(instance, ex);
+      }
+    }
+
+    private async Task RunCreateProjectFromFileAsync(Instance instance, string configFilePath)
+    {
+      AppHandlers.InfoHandler(instance, MethodBase.GetCurrentMethod().Name);
+
+      try
+      {
+        ChangeGridStatus(instance, Constants.InstanceStatus.Update);
+        await Task.Run(() => AppHandlers.LaunchProcess("cmd",
+                                                  string.Format("cmd /K {1} map create_project {0} -rundds=False -need_pause",
+                                                  configFilePath, AppHelper.GetDoPath(instance.InstancePath)),
+                                                  true, true));
+        ChangeGridStatus(instance, Constants.InstanceStatus.Working);
+      }
+      catch (Exception ex)
+      {
+        ChangeGridStatus(instance, Constants.InstanceStatus.Stopped);
+        AppHandlers.ErrorHandler(instance, ex);
       }
     }
 
@@ -609,35 +751,108 @@ namespace RXInstanceManager
 
     }
 
-    private void CloneProject_Click(object sender, RoutedEventArgs e)
+    private void UpdateCloneProjectMenu()
     {
-      AppHandlers.InfoHandler(_instance, MethodBase.GetCurrentMethod().Name);
+      CloneProject.Click -= CloneProjectFromFile_Click;
+      CloneProject.Items.Clear();
+
+      var instance = _instance;
+      if (instance == null || string.IsNullOrEmpty(instance.Code))
+        return;
+
+      if (!AppHelper.IsPlatformVersionGreaterThan26_1(instance.PlatformVersion))
+      {
+        CloneProject.Click += CloneProjectFromFile_Click;
+        return;
+      }
+
+      var activeConfiguration = AppHelper.GetActiveDesktopConfiguration(instance.InstancePath);
+      if (string.IsNullOrWhiteSpace(activeConfiguration))
+      {
+        CloneProject.Items.Add(new MenuItem { Header = "(нет активной конфигурации)", IsEnabled = false });
+        return;
+      }
+
+      var targetConfigurations = AppHelper.GetDesktopConfigurationNames(instance.InstancePath, activeConfiguration);
+      if (targetConfigurations.Count == 0)
+      {
+        CloneProject.Items.Add(new MenuItem { Header = "(нет других конфигураций)", IsEnabled = false });
+        return;
+      }
+
+      foreach (var name in targetConfigurations)
+      {
+        var item = new MenuItem { Header = name, Tag = name };
+        item.Click += CloneProjectConfiguration_Click;
+        CloneProject.Items.Add(item);
+      }
+    }
+
+    private void CloneProjectConfiguration_Click(object sender, RoutedEventArgs e)
+    {
+      var targetConfiguration = ((MenuItem)sender).Tag as string;
+      if (string.IsNullOrWhiteSpace(targetConfiguration))
+        return;
+
+      var instance = _instance;
+      var currentConfiguration = AppHelper.GetActiveDesktopConfiguration(instance.InstancePath);
+      if (string.IsNullOrWhiteSpace(currentConfiguration))
+        return;
+
+      RunCloneProjectFromConfiguration(instance, currentConfiguration, targetConfiguration);
+    }
+
+    private void CloneProjectFromFile_Click(object sender, RoutedEventArgs e)
+    {
+      var instance = _instance;
+      AppHandlers.InfoHandler(instance, MethodBase.GetCurrentMethod().Name);
       using (System.Windows.Forms.OpenFileDialog openFileDialog = new System.Windows.Forms.OpenFileDialog())
       {
-        var filter = string.Format("configs for {0}|{0}_*.yml;{0}_*.yaml|YAML-файлы|*.yml;*.yaml|All files (*.*)|*.*", _instance.Code);
-        openFileDialog.InitialDirectory = Path.GetDirectoryName(_instance.ProjectConfigPath);
+        var filter = string.Format("configs for {0}|{0}_*.yml;{0}_*.yaml|YAML-файлы|*.yml;*.yaml|All files (*.*)|*.*", instance.Code);
+        openFileDialog.InitialDirectory = Path.GetDirectoryName(instance.ProjectConfigPath);
         openFileDialog.Filter = filter;
         openFileDialog.FilterIndex = 1;
         openFileDialog.RestoreDirectory = true;
 
         if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
         {
-          var config_filename = openFileDialog.FileName;
-          try
-          {
-            AppHandlers.LaunchProcess("cmd",
-                                      string.Format("cmd /K {2} map clone_project {0} {1} -rundds=False -need_pause",
-                                      _instance.ProjectConfigPath, config_filename, AppHelper.GetDoPath(_instance.InstancePath)),
-                                      true, true);
-          }
-          catch (Exception ex)
-          {
-            AppHandlers.ErrorHandler(_instance, ex);
-          }
-
+          RunCloneProjectFromFile(instance, instance.ProjectConfigPath, openFileDialog.FileName);
         }
       }
+    }
 
+    private void RunCloneProjectFromConfiguration(Instance instance, string currentConfiguration, string targetConfiguration)
+    {
+      AppHandlers.InfoHandler(instance, MethodBase.GetCurrentMethod().Name);
+      try
+      {
+        //AppHandlers.LaunchProcess(AppHelper.GetDoPath(instance.InstancePath),
+         // string.Format("map clone_project_ds {0} {1}", currentConfiguration, targetConfiguration),
+          //true, true);
+        AppHandlers.LaunchProcess("cmd",
+          string.Format("cmd /K {2} map clone_project_ds \"'{0}'\" \"'{1}'\" -need_pause",
+            currentConfiguration, targetConfiguration, AppHelper.GetDoPath(instance.InstancePath)),
+          true, true);
+      }
+      catch (Exception ex)
+      {
+        AppHandlers.ErrorHandler(instance, ex);
+      }
+    }
+
+    private void RunCloneProjectFromFile(Instance instance, string currentProjectConfig, string targetProjectConfig)
+    {
+      try
+      {
+        AppHandlers.LaunchProcess("cmd",
+          string.Format("cmd /K {2} map clone_project {0} {1} -rundds=False -need_pause",
+            currentProjectConfig, targetProjectConfig, AppHelper.GetDoPath(instance.InstancePath)),
+          true, true);
+      }
+      catch (Exception ex)
+      {
+        AppHandlers.ErrorHandler(instance, ex);
+      }
     }
 
     private void RemoveProjectDataContext_Click(object sender, RoutedEventArgs e)
@@ -759,6 +974,14 @@ namespace RXInstanceManager
         return;
 
       System.Windows.Clipboard.SetText(_instance.SolutionVersion ?? string.Empty);
+    }
+
+    private void CopyPlatformVersionContext_Click(object sender, RoutedEventArgs e)
+    {
+      if (_instance == null)
+        return;
+
+      System.Windows.Clipboard.SetText(_instance.PlatformVersion ?? string.Empty);
     }
 
     private void ChangeGridStatus(Instance instance, string status)

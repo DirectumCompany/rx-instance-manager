@@ -40,11 +40,14 @@ namespace RXInstanceManager
               dbName = ymlData.variables["database"];
             this.DBName = dbName ?? string.Empty;
 
+            this.PlatformVersion = AppHandlers.GetInstancePlatformVersion(instancePath);
+            this.SolutionVersion = AppHandlers.GetInstanceSolutionVersion(instancePath);
+
             this.Code = instanceCode;
             this.ServiceName = $"{Constants.Service}_{instanceCode}";
             this.DBEngine = dbEngine;
             this.Name = ymlData.variables["purpose"];
-            this.ProjectConfigPath = ymlData.variables["project_config_path"];
+            this.ProjectConfigPath = AppHelper.GetProjectConfigPath(ymlData, this.PlatformVersion);
             this.Port = Convert.ToInt32(ymlData.variables["http_port"]);
             this.URL = AppHelper.GetClientURL(protocol, host, this.Port);
             this.StoragePath = ymlData.variables["home_path"];
@@ -74,8 +77,6 @@ namespace RXInstanceManager
               }
             }
           }
-          this.PlatformVersion = AppHandlers.GetInstancePlatformVersion(instancePath);
-          this.SolutionVersion = AppHandlers.GetInstanceSolutionVersion(instancePath);
           this.Status = AppHandlers.GetServiceStatus(this);
           this.ConfigChanged = AppHelper.GetFileChangeTime(configYamlPath);
 

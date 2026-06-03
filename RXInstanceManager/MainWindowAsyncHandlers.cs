@@ -67,7 +67,9 @@ namespace RXInstanceManager
                 inst.DBName = dbName ?? string.Empty;
 
                 inst.Name = ymlData.variables["purpose"];
-                inst.ProjectConfigPath = ymlData.variables["project_config_path"];
+                instance.PlatformVersion = AppHandlers.GetInstancePlatformVersion(instance.InstancePath);
+                instance.SolutionVersion = AppHandlers.GetInstanceSolutionVersion(instance.InstancePath);
+                inst.ProjectConfigPath = AppHelper.GetProjectConfigPath(ymlData, instance.PlatformVersion);
 
                 inst.Port = Convert.ToInt32(ymlData.variables["http_port"]);
                 inst.URL = AppHelper.GetClientURL(protocol, host, inst.Port);
@@ -80,8 +82,6 @@ namespace RXInstanceManager
                 inst.SourcesPath = ymlData.services_config["DevelopmentStudio"]["GIT_ROOT_DIRECTORY"];
                 if (inst.SourcesPath == "{{ home_path_src }}")
                   inst.SourcesPath = ymlData.variables["home_path_src"];
-                instance.PlatformVersion = AppHandlers.GetInstancePlatformVersion(instance.InstancePath);
-                instance.SolutionVersion = AppHandlers.GetInstanceSolutionVersion(instance.InstancePath);
 
                 var repositories = ymlData.services_config["DevelopmentStudio"]["REPOSITORIES"]["repository"];
                 instance.WorkingRepositoryName = String.Empty;
