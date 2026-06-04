@@ -44,6 +44,18 @@ namespace RXInstanceManager
       throw new InvalidOperationException("rxman.config: contextMenu must be a YAML mapping.");
     }
 
+    private static bool GetConfigBool(dynamic ymlData, string key, bool defaultValue)
+    {
+      var root = (IDictionary<string, object>)ymlData;
+      if (!root.TryGetValue(key, out object value) || value == null)
+        return defaultValue;
+
+      if (value is bool boolValue)
+        return boolValue;
+
+      return string.Equals(value.ToString(), "true", StringComparison.OrdinalIgnoreCase);
+    }
+
     private void LoadConfig()
     {
       string rxInstManConfigFilePath = Path.Combine(AppContext.BaseDirectory, Constants.RXInstanceManagerConfigFileNane);
@@ -75,6 +87,7 @@ namespace RXInstanceManager
         var config = new Config();
         config.LogViewer = "";
         config.NeedCheckAfterSet = false;
+        config.EditConfigurations = false;
         config.ContextMenu = contextMenu;
         var serializer = new YamlDotNet.Serialization.SerializerBuilder()
           .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.CamelCaseNamingConvention.Instance)
@@ -98,9 +111,8 @@ namespace RXInstanceManager
           _configRxInstMan.LogViewerExists = !string.IsNullOrWhiteSpace(_configRxInstMan.LogViewer) && File.Exists(_configRxInstMan.LogViewer);
           if (!string.IsNullOrWhiteSpace(_configRxInstMan.LogViewer) && !_configRxInstMan.LogViewerExists)
             AppHandlers.logger.Error(string.Format("Файл LogViewer {0} не найден", _configRxInstMan.LogViewer));
-          _configRxInstMan.NeedCheckAfterSet = ymlData.needCheckAfterSet is bool needCheck
-            ? needCheck
-            : string.Equals(ymlData.needCheckAfterSet?.ToString(), "true", StringComparison.OrdinalIgnoreCase);
+          _configRxInstMan.NeedCheckAfterSet = GetConfigBool(ymlData, "needCheckAfterSet", false);
+          _configRxInstMan.EditConfigurations = GetConfigBool(ymlData, "editConfigurations", false);
 
           object contextMenuRaw = ((IDictionary<string, object>)ymlData).TryGetValue("contextMenu", out object cm) ? cm : null;
           var menu = GetContextMenuMap(contextMenuRaw);
@@ -233,6 +245,10 @@ namespace RXInstanceManager
       ChangeProject.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.ChangeProject);
       CreateProject.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.CreateProject);
       CloneProject.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.CloneProject);
+      ConfigurationsContext.Visibility = Visibility.Collapsed;
+      if (instance != null && !string.IsNullOrEmpty(instance.Code) &&
+          AppHelper.IsPlatformVersionGreaterThan26_1(instance.PlatformVersion))
+        ConfigurationsContext.Visibility = Visibility.Visible;
       UpdateConfig.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.UpdateConfig);
       CheckServices.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.CheckServices);
       RunDDSWithOutDeploy.Visibility = isVisibleContextButton(_configRxInstMan.ContextMenu.RunDDSWithOutDeploy);

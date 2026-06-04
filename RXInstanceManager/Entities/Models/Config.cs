@@ -30,6 +30,11 @@ namespace RXInstanceManager
 
     public bool NeedCheckAfterSet { get; set; }
 
+    /// <summary>
+    /// Allow creating and editing desktop configurations in the configurations dialog.
+    /// </summary>
+    public bool EditConfigurations { get; set; }
+
     public ContextMenuClass ContextMenu { get; set; }
 
   }

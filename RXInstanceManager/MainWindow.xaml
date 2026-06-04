@@ -83,17 +83,19 @@
         </DataGrid.Columns>
         <DataGrid.ContextMenu>
           <ContextMenu x:Name="InstancesContextMenu" Opened="InstancesContextMenu_Opened">
-            <MenuItem x:Name="CopyContext" Header="Скопировать">
-              <MenuItem Header="Имя БД" Click="CopyDBNameContext_Click" />
-              <MenuItem Header="URL веб-клиента" Click="CopyUrlContext_Click" />
-              <MenuItem Header="URL сервиса интеграции" Click="CopyIntegrationUrlContext_Click" />
-              <MenuItem Header="Версия RX" Click="CopyVersionContext_Click" />
-              <MenuItem Header="Версия Sungero" Click="CopyPlatformVersionContext_Click" />
+            <MenuItem x:Name="CopyContext" Header="Скопировать в буфер">
+              <MenuItem x:Name="CopyDbNameContext" Header="БД" Click="CopyDBNameContext_Click" />
+              <MenuItem x:Name="CopyUrlContext" Header="WebClient" Click="CopyUrlContext_Click" />
+              <MenuItem x:Name="CopyIntegrationUrlContext" Header="Integration" Click="CopyIntegrationUrlContext_Click" />
+              <MenuItem x:Name="CopyPublicApiContext" Header="PublicAPI" Click="CopyPublicApiContext_Click" />
+              <MenuItem x:Name="CopyVersionContext" Header="RX" Click="CopyVersionContext_Click" />
+              <MenuItem x:Name="CopyPlatformVersionContext" Header="Sungero" Click="CopyPlatformVersionContext_Click" />
             </MenuItem>
             <Separator/>
             <MenuItem x:Name="ChangeProject" Header="Сменить проект" />
             <MenuItem x:Name="CreateProject" Header="Создать проект" />
             <MenuItem x:Name="CloneProject" Header="Создать копию текущего проекта" />
+            <MenuItem x:Name="ConfigurationsContext" Header="Конфигурации" Click="ConfigurationsContext_Click" />
             <MenuItem x:Name="UpdateConfig" Header="Пропатчить config.yml" Click="UpdateConfig_Click" />
             <MenuItem x:Name="CheckServices" Header="Проверить сервисы" Click="CheckServices_Click" />
             <MenuItem x:Name="RunDDSWithOutDeploy" Header="Открыть DDS без deploy" Click="RunDDSWithOutDeploy_Click" />

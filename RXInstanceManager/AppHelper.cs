@@ -6,12 +6,15 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using YamlDotNet.Core;
 using YamlDotNet.Serialization;
 
 namespace RXInstanceManager
 {
   public static class AppHelper
   {
+    private const int ConfigYamlIndent = 4;
+
     public static string Base64EncodeFromUTF8(string plainText)
     {
       var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
@@ -307,62 +310,444 @@ namespace RXInstanceManager
     public static List<string> GetDesktopConfigurationNames(string instancePath, string excludeConfigurationName = null)
     {
       var names = new List<string>();
+      foreach (var configuration in GetDesktopConfigurations(instancePath))
+      {
+        if (!string.IsNullOrWhiteSpace(excludeConfigurationName) &&
+            string.Equals(configuration.Name, excludeConfigurationName, StringComparison.OrdinalIgnoreCase))
+          continue;
+
+        names.Add(configuration.Name);
+      }
+
+      return names;
+    }
+
+    public static List<DesktopConfiguration> GetDesktopConfigurations(string instancePath)
+    {
+      var configurations = new List<DesktopConfiguration>();
       var configYamlPath = GetConfigYamlPath(instancePath);
       if (!File.Exists(configYamlPath))
-        return names;
+        return configurations;
 
+      var activeConfiguration = GetActiveDesktopConfiguration(instancePath);
       using (var reader = new StreamReader(configYamlPath))
       {
         var deserializer = new DeserializerBuilder().Build();
         dynamic ymlData = deserializer.Deserialize<ExpandoObject>(reader.ReadToEnd());
         try
         {
-          var configurations = ymlData.services_config["DevelopmentStudioDesktop"]["CONFIGURATIONS"]["configuration"];
-          CollectConfigurationNames(configurations, names, excludeConfigurationName);
+          var configurationsRaw = ymlData.services_config["DevelopmentStudioDesktop"]["CONFIGURATIONS"]["configuration"];
+          var serializer = new SerializerBuilder().Build();
+          foreach (var configurationRaw in EnumerateConfigurationItems(configurationsRaw))
+          {
+            var name = GetConfigurationName(configurationRaw);
+            if (string.IsNullOrWhiteSpace(name))
+              continue;
+
+            configurations.Add(new DesktopConfiguration
+            {
+              Name = name,
+              IsActive = string.Equals(name, activeConfiguration, StringComparison.OrdinalIgnoreCase),
+              Details = serializer.Serialize(NormalizeYamlObject(configurationRaw)),
+            });
+          }
         }
         catch
         {
         }
       }
 
-      return names;
+      return configurations;
     }
 
-    private static void CollectConfigurationNames(dynamic configurations, List<string> names, string excludeConfigurationName)
+    private static IEnumerable<object> EnumerateConfigurationItems(object configurations)
     {
       if (configurations == null)
-        return;
+        yield break;
 
       if (configurations is IEnumerable enumerable && configurations is not string)
       {
         foreach (var item in enumerable)
-          AddConfigurationName(item, names, excludeConfigurationName);
-        return;
+          yield return item;
+        yield break;
       }
 
-      AddConfigurationName(configurations, names, excludeConfigurationName);
+      yield return configurations;
     }
 
-    private static void AddConfigurationName(dynamic configuration, List<string> names, string excludeConfigurationName)
+    public static string GetConfigurationName(object configuration)
     {
       if (configuration == null)
-        return;
+        return string.Empty;
 
       try
       {
-        var name = configuration["@name"]?.ToString();
-        if (string.IsNullOrWhiteSpace(name))
-          return;
-
-        if (!string.IsNullOrWhiteSpace(excludeConfigurationName) &&
-            string.Equals(name, excludeConfigurationName, StringComparison.OrdinalIgnoreCase))
-          return;
-
-        names.Add(name);
+        dynamic dynamicConfiguration = configuration;
+        return dynamicConfiguration["@name"]?.ToString() ?? string.Empty;
       }
       catch
       {
+        return string.Empty;
       }
+    }
+
+    private static object NormalizeYamlObject(object value)
+    {
+      if (value == null)
+        return null;
+
+      if (value is IDictionary<string, object> stringDictionary)
+      {
+        var normalized = new Dictionary<string, object>(StringComparer.Ordinal);
+        foreach (var pair in stringDictionary)
+          normalized[pair.Key] = NormalizeYamlObject(pair.Value);
+        return normalized;
+      }
+
+      if (value is IDictionary<object, object> objectDictionary)
+      {
+        var normalized = new Dictionary<string, object>(StringComparer.Ordinal);
+        foreach (var pair in objectDictionary)
+          normalized[pair.Key?.ToString() ?? string.Empty] = NormalizeYamlObject(pair.Value);
+        return normalized;
+      }
+
+      if (value is IDictionary legacyDictionary)
+      {
+        var normalized = new Dictionary<string, object>(StringComparer.Ordinal);
+        foreach (DictionaryEntry entry in legacyDictionary)
+          normalized[entry.Key?.ToString() ?? string.Empty] = NormalizeYamlObject(entry.Value);
+        return normalized;
+      }
+
+      if (value is IEnumerable enumerable && value is not string)
+        return enumerable.Cast<object>().Select(NormalizeYamlObject).ToList();
+
+      return value;
+    }
+
+    public static bool TryParseConfigurationYaml(string yaml, out object configuration, out string error)
+    {
+      configuration = null;
+      error = null;
+
+      if (string.IsNullOrWhiteSpace(yaml))
+      {
+        error = "Содержимое конфигурации не может быть пустым.";
+        return false;
+      }
+
+      try
+      {
+        var deserializer = new DeserializerBuilder().Build();
+        configuration = deserializer.Deserialize<object>(yaml);
+        if (configuration == null)
+        {
+          error = "Не удалось разобрать YAML.";
+          return false;
+        }
+
+        return true;
+      }
+      catch (Exception ex)
+      {
+        error = ex.Message;
+        return false;
+      }
+    }
+
+    public static void SetConfigurationName(object configuration, string name)
+    {
+      if (configuration is IDictionary<string, object> stringDictionary)
+      {
+        stringDictionary["@name"] = name;
+        return;
+      }
+
+      if (configuration is IDictionary<object, object> objectDictionary)
+      {
+        objectDictionary["@name"] = name;
+        return;
+      }
+
+      if (configuration is IDictionary legacyDictionary)
+        legacyDictionary["@name"] = name;
+    }
+
+    public static string BuildDesktopConfigurationTemplate(string baseDetailsYaml, string name)
+    {
+      if (string.IsNullOrWhiteSpace(baseDetailsYaml))
+        return $"@name: {name}";
+
+      if (!TryParseConfigurationYaml(baseDetailsYaml, out object configuration, out _))
+        return $"@name: {name}";
+
+      SetConfigurationName(configuration, name);
+      var serializer = new SerializerBuilder().Build();
+      return serializer.Serialize(NormalizeYamlObject(configuration));
+    }
+
+    public static string SaveDesktopConfigurations(string instancePath, IReadOnlyList<DesktopConfiguration> configurations)
+    {
+      if (configurations == null || configurations.Count == 0)
+        return "Список конфигураций пуст.";
+
+      var configYamlPath = GetConfigYamlPath(instancePath);
+      if (!File.Exists(configYamlPath))
+        return "Файл config.yml не найден.";
+
+      var parsedConfigurations = new List<object>();
+      var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+      foreach (var configuration in configurations)
+      {
+        if (!TryParseConfigurationYaml(configuration.Details, out object parsedConfiguration, out string parseError))
+          return $"Конфигурация «{configuration.Name}»: {parseError}";
+
+        var name = GetConfigurationName(parsedConfiguration);
+        if (string.IsNullOrWhiteSpace(name))
+          name = configuration.Name;
+
+        if (string.IsNullOrWhiteSpace(name))
+          return "У каждой конфигурации должно быть указано имя (@name).";
+
+        SetConfigurationName(parsedConfiguration, name);
+        if (!names.Add(name))
+          return $"Дублируется имя конфигурации: {name}";
+
+        parsedConfigurations.Add(parsedConfiguration);
+      }
+
+      try
+      {
+        var originalContent = File.ReadAllText(configYamlPath);
+        if (!TryPatchConfigurationsSection(originalContent, parsedConfigurations, out string patchedContent, out string patchError))
+          return patchError;
+
+        File.WriteAllText(@"D:\rx_ver\26304\etc\config_1.yml", patchedContent);
+        File.WriteAllText(configYamlPath, patchedContent);
+        return null;
+      }
+      catch (Exception ex)
+      {
+        return ex.Message;
+      }
+    }
+
+    private static bool TryPatchConfigurationsSection(string fileContent, List<object> configurations, out string patchedContent, out string error)
+    {
+      patchedContent = null;
+      error = null;
+
+      var newline = fileContent.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n";
+      var lines = fileContent.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+
+      if (!TryLocateConfigurationsSection(lines, out int configurationsLineIndex, out int configurationsEndIndex, out int configurationsIndent))
+      {
+        if (!TryInsertConfigurationsSection(lines, configurations, out patchedContent, out error, newline))
+          error ??= "Секция CONFIGURATIONS не найдена в config.yml.";
+        return error == null;
+      }
+
+      var sectionLines = BuildConfigurationsSectionLines(configurationsIndent, configurations);
+      var result = new List<string>();
+      result.AddRange(lines.Take(configurationsLineIndex));
+      result.AddRange(sectionLines);
+      result.AddRange(lines.Skip(configurationsEndIndex));
+      patchedContent = string.Join(newline, result);
+      return true;
+    }
+
+    private static bool TryLocateConfigurationsSection(string[] lines, out int configurationsLineIndex, out int configurationsEndIndex, out int configurationsIndent)
+    {
+      configurationsLineIndex = -1;
+      configurationsEndIndex = -1;
+      configurationsIndent = -1;
+
+      var desktopLineIndex = -1;
+      var desktopIndent = -1;
+      for (var i = 0; i < lines.Length; i++)
+      {
+        var trimmed = lines[i].TrimStart();
+        if (!trimmed.StartsWith("DevelopmentStudioDesktop:", StringComparison.Ordinal))
+          continue;
+
+        desktopLineIndex = i;
+        desktopIndent = GetLineIndent(lines[i]);
+        break;
+      }
+
+      if (desktopLineIndex < 0)
+        return false;
+
+      for (var i = desktopLineIndex + 1; i < lines.Length; i++)
+      {
+        var line = lines[i];
+        if (IsIgnorableYamlLine(line))
+          continue;
+
+        var indent = GetLineIndent(line);
+        if (indent <= desktopIndent && line.TrimStart().Contains(':'))
+          break;
+
+        var trimmed = line.TrimStart();
+        if (!trimmed.StartsWith("CONFIGURATIONS:", StringComparison.Ordinal))
+          continue;
+
+        configurationsLineIndex = i;
+        configurationsIndent = indent;
+        configurationsEndIndex = lines.Length;
+        for (var j = i + 1; j < lines.Length; j++)
+        {
+          var nextLine = lines[j];
+          if (IsIgnorableYamlLine(nextLine))
+            continue;
+
+          var nextIndent = GetLineIndent(nextLine);
+          if (nextIndent <= configurationsIndent && nextLine.TrimStart().Contains(':'))
+          {
+            configurationsEndIndex = j;
+            break;
+          }
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    private static bool TryInsertConfigurationsSection(string[] lines, List<object> configurations, out string patchedContent, out string error, string newline)
+    {
+      patchedContent = null;
+      error = null;
+
+      var desktopLineIndex = -1;
+      var desktopIndent = -1;
+      for (var i = 0; i < lines.Length; i++)
+      {
+        var trimmed = lines[i].TrimStart();
+        if (!trimmed.StartsWith("DevelopmentStudioDesktop:", StringComparison.Ordinal))
+          continue;
+
+        desktopLineIndex = i;
+        desktopIndent = GetLineIndent(lines[i]);
+        break;
+      }
+
+      if (desktopLineIndex < 0)
+      {
+        error = "Секция DevelopmentStudioDesktop не найдена в config.yml.";
+        return false;
+      }
+
+      var insertIndex = lines.Length;
+      for (var i = desktopLineIndex + 1; i < lines.Length; i++)
+      {
+        var line = lines[i];
+        if (IsIgnorableYamlLine(line))
+          continue;
+
+        var indent = GetLineIndent(line);
+        if (indent <= desktopIndent && line.TrimStart().Contains(':'))
+        {
+          insertIndex = i;
+          break;
+        }
+      }
+
+      var sectionLines = BuildConfigurationsSectionLines(desktopIndent + ConfigYamlIndent, configurations);
+      var result = new List<string>();
+      result.AddRange(lines.Take(insertIndex));
+      result.AddRange(sectionLines);
+      result.AddRange(lines.Skip(insertIndex));
+      patchedContent = string.Join(newline, result);
+      return true;
+    }
+
+    private static List<string> BuildConfigurationsSectionLines(int configurationsIndent, List<object> configurations)
+    {
+      var wrapper = new Dictionary<string, object>
+      {
+        ["configuration"] = configurations.Count == 1 ? configurations[0] : configurations,
+      };
+
+      var innerYaml = SerializeConfigYaml(wrapper);
+      var sectionLines = new List<string>
+      {
+        new string(' ', configurationsIndent) + "CONFIGURATIONS:",
+      };
+
+      foreach (var line in SplitYamlLines(innerYaml))
+      {
+        if (line.Length == 0)
+        {
+          sectionLines.Add(string.Empty);
+          continue;
+        }
+
+        sectionLines.Add(new string(' ', configurationsIndent + ConfigYamlIndent) + line);
+      }
+
+      return sectionLines;
+    }
+
+    private static IEnumerable<string> SplitYamlLines(string yaml)
+    {
+      return yaml.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+    }
+
+    private static bool IsIgnorableYamlLine(string line)
+    {
+      return string.IsNullOrWhiteSpace(line) || line.TrimStart().StartsWith("#", StringComparison.Ordinal);
+    }
+
+    private static int GetLineIndent(string line)
+    {
+      var indent = 0;
+      foreach (var character in line)
+      {
+        if (character == ' ')
+          indent++;
+        else if (character == '\t')
+          indent += ConfigYamlIndent;
+        else
+          break;
+      }
+
+      return indent;
+    }
+
+    private static string SerializeConfigYaml(object graph)
+    {
+      var serializer = new SerializerBuilder()
+        .WithIndentedSequences()
+        .Build();
+      var emitterSettings = EmitterSettings.Default.WithBestIndent(ConfigYamlIndent);
+
+      using (var writer = new StringWriter())
+      {
+        var emitter = new Emitter(writer, emitterSettings);
+        serializer.Serialize(emitter, graph);
+        return writer.ToString();
+      }
+    }
+
+    private static IDictionary<string, object> GetOrCreateDictionary(IDictionary<string, object> parent, string key)
+    {
+      if (!parent.TryGetValue(key, out object value) || value == null)
+      {
+        var created = new ExpandoObject();
+        parent[key] = created;
+        return (IDictionary<string, object>)created;
+      }
+
+      if (value is IDictionary<string, object> stringDictionary)
+        return stringDictionary;
+
+      if (value is ExpandoObject expando)
+        return expando;
+
+      throw new InvalidOperationException($"Секция {key} в config.yml имеет неожиданный формат.");
     }
   }
 }

@@ -48,6 +48,7 @@
 
 * logViewer - путь к Directum LogViewer.
 * needCheckAfterSet - требуется или нет выполнять проверку отклика сервисов после переключения между проектами. Допустимые значения `true` и `false`.
+* editConfigurations - разрешить создание и редактирование конфигураций Development Studio Desktop в окне «Конфигурации». При `false` доступен только просмотр. Допустимые значения `true` и `false` (по умолчанию `false`).
 * contextMenu - настройки видимости пунктов контекстного меню:
     * changeProject - Сменить проект
     * createProject - Создать проект

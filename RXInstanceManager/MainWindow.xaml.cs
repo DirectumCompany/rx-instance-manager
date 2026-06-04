@@ -305,9 +305,50 @@ namespace RXInstanceManager
 
     private void InstancesContextMenu_Opened(object sender, RoutedEventArgs e)
     {
+      UpdateCopyContextMenu();
       UpdateChangeProjectMenu();
       UpdateCreateProjectMenu();
       UpdateCloneProjectMenu();
+    }
+
+    private void UpdateCopyContextMenu()
+    {
+      CopyDbNameContext.Header = FormatCopyMenuHeader("БД", _instance?.DBName);
+      CopyUrlContext.Header = FormatCopyMenuHeader("WebClient", _instance?.URL);
+      CopyIntegrationUrlContext.Header = FormatCopyMenuHeader("Integration", GetIntegrationUrl(_instance));
+      CopyPublicApiContext.Header = FormatCopyMenuHeader("PublicAPI", GetPublicApiUrl(_instance));
+      CopyVersionContext.Header = FormatCopyMenuHeader("RX", _instance?.SolutionVersion);
+      CopyPlatformVersionContext.Header = FormatCopyMenuHeader("Sungero", _instance?.PlatformVersion);
+    }
+
+    private static string FormatCopyMenuHeader(string label, string value)
+    {
+      if (string.IsNullOrWhiteSpace(value))
+        return $"{label}: (пусто)";
+
+      return $"{label}: {value}";
+    }
+
+    private static string GetIntegrationUrl(Instance instance)
+    {
+      if (instance == null || string.IsNullOrWhiteSpace(instance.URL))
+        return string.Empty;
+
+      if (Uri.TryCreate(instance.URL, UriKind.Absolute, out Uri webClientUri))
+        return new Uri(webClientUri, "/Integration/odata").ToString();
+
+      return instance.URL.Replace("/Client", "/Integration/odata");
+    }
+
+    private static string GetPublicApiUrl(Instance instance)
+    {
+      if (instance == null || string.IsNullOrWhiteSpace(instance.URL))
+        return string.Empty;
+
+      if (Uri.TryCreate(instance.URL, UriKind.Absolute, out Uri webClientUri))
+        return new Uri(webClientUri, "/Client/api/public").ToString();
+
+      return instance.URL.Replace("/Client", "/Client/api/public");
     }
 
     private void UpdateChangeProjectMenu()
@@ -613,6 +654,38 @@ namespace RXInstanceManager
         return;
 
       Dialogs.ShowInformation(_instance.ToString());
+    }
+
+    private void ConfigurationsContext_Click(object sender, RoutedEventArgs e)
+    {
+      AppHandlers.InfoHandler(_instance, MethodBase.GetCurrentMethod().Name);
+
+      if (_instance == null)
+        return;
+
+      var configYamlPath = AppHelper.GetConfigYamlPath(_instance.InstancePath);
+      if (!File.Exists(configYamlPath))
+      {
+        System.Windows.MessageBox.Show(
+          "Файл config.yml не найден.",
+          "Конфигурации",
+          MessageBoxButton.OK,
+          MessageBoxImage.Warning);
+        return;
+      }
+
+      var configurations = AppHelper.GetDesktopConfigurations(_instance.InstancePath);
+      var dialog = new ConfigurationsDialog(_instance.InstancePath, configurations, _configRxInstMan.EditConfigurations)
+      {
+        Owner = this,
+      };
+      dialog.ShowDialog();
+
+      if (dialog.HasSavedChanges)
+      {
+        AppHandlers.UpdateInstanceData(_instance);
+        LoadInstances(_instance.InstancePath);
+      }
     }
 
     #endregion
@@ -954,18 +1027,18 @@ namespace RXInstanceManager
 
     private void CopyIntegrationUrlContext_Click(object sender, RoutedEventArgs e)
     {
-      if (_instance == null || string.IsNullOrWhiteSpace(_instance.URL))
+      if (_instance == null)
         return;
 
-      if (Uri.TryCreate(_instance.URL, UriKind.Absolute, out Uri webClientUri))
-      {
-        var integrationUri = new Uri(webClientUri, "/Integration/odata");
-        System.Windows.Clipboard.SetText(integrationUri.ToString());
-        return;
-      }
+      System.Windows.Clipboard.SetText(GetIntegrationUrl(_instance));
+    }
 
-      string integrationUrl = _instance.URL.Replace("/Client", "/Integration/odata");
-      System.Windows.Clipboard.SetText(integrationUrl);
+    private void CopyPublicApiContext_Click(object sender, RoutedEventArgs e)
+    {
+      if (_instance == null)
+        return;
+
+      System.Windows.Clipboard.SetText(GetPublicApiUrl(_instance));
     }
 
     private void CopyVersionContext_Click(object sender, RoutedEventArgs e)
