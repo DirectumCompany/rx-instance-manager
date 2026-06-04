@@ -523,7 +523,6 @@ namespace RXInstanceManager
         if (!TryPatchConfigurationsSection(originalContent, parsedConfigurations, out string patchedContent, out string patchError))
           return patchError;
 
-        File.WriteAllText(@"D:\rx_ver\26304\etc\config_1.yml", patchedContent);
         File.WriteAllText(configYamlPath, patchedContent);
         return null;
       }
