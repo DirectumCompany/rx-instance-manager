@@ -424,7 +424,7 @@ namespace RXInstanceManager
           //true));
 
         await Task.Run(() => AppHandlers.LaunchProcess("cmd",
-                                                  string.Format("cmd /K {1} map set_ds  \"'{0}'\"  -need_pause -need_check={2}",
+                                                  string.Format("cmd /C {1} map set_ds  \"'{0}'\" -need_pause -need_check={2}",
                                                   configurationName, AppHelper.GetDoPath(instance.InstancePath), needCheck),
                                                   true, true));
 
