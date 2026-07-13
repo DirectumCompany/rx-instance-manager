@@ -1,10 +1,9 @@
 using System;
 using System.Linq;
 using System.IO;
-using System.Windows;
 using System.Threading.Tasks;
-using System.Dynamic;
-using YamlDotNet.Serialization;
+using System.Windows;
+using System.Windows.Threading;
 
 namespace RXInstanceManager
 {
@@ -16,20 +15,29 @@ namespace RXInstanceManager
       {
         await Task.Delay(TimeSpan.FromSeconds(2));
 
-        foreach (var instance in GridInstances.Items.Cast<Instance>())
-        {
-          if (!string.IsNullOrEmpty(instance.Code))
-          {
-            if (instance.Status == Constants.InstanceStatus.Update)
-              continue;
+        var instances = await Dispatcher.InvokeAsync(() =>
+          GridInstances.Items.Cast<Instance>().ToList());
 
-            var status = AppHandlers.GetServiceStatus(instance);
-            if (status != instance.Status)
-            {
-              instance.Status = status;
-              LoadInstances(instance.InstancePath);
-            }
-          }
+        foreach (var instance in instances)
+        {
+          if (string.IsNullOrEmpty(instance.Code))
+            continue;
+
+          if (instance.Status == Constants.InstanceStatus.Update)
+            continue;
+
+          var status = AppHandlers.GetServiceStatus(instance);
+          if (status == instance.Status)
+            continue;
+
+          var instancePath = instance.InstancePath;
+          await Dispatcher.InvokeAsync(() =>
+          {
+            instance.Status = status;
+            LoadInstances(instancePath);
+            if (_instance != null && _instance.InstancePath == instancePath)
+              ActionButtonVisibleChanging(instance: instance);
+          });
         }
       }
     }
@@ -40,91 +48,64 @@ namespace RXInstanceManager
       {
         await Task.Delay(TimeSpan.FromSeconds(2));
 
-        foreach (var instance in GridInstances.Items.Cast<Instance>())
+        var instances = await Dispatcher.InvokeAsync(() =>
+          GridInstances.Items.Cast<Instance>().ToList());
+
+        foreach (var instance in instances)
         {
           var idx = Instances.instances.FindIndex(i => i.InstancePath == instance.InstancePath);
+          if (idx < 0)
+            continue;
+
           var inst = Instances.instances[idx];
           var configYamlPath = AppHelper.GetConfigYamlPath(inst.InstancePath);
-          if (File.Exists(configYamlPath))
+          if (!File.Exists(configYamlPath))
           {
-            var changeTime = AppHelper.GetFileChangeTime(configYamlPath);
-            if (changeTime.MoreThanUpToSeconds(inst.ConfigChanged))
+            if (inst.Status == Constants.InstanceStatus.NotInstalled)
+              continue;
+
+            try
             {
-              using (var reader = new StreamReader(configYamlPath))
-              {
-                var deserializer = new DeserializerBuilder().Build();
-                dynamic ymlData = deserializer.Deserialize<ExpandoObject>(reader.ReadToEnd());
-
-                var protocol = ymlData.variables["protocol"];
-                var host = ymlData.variables["host_fqdn"];
-                var connection = ymlData.common_config["CONNECTION_STRING"];
-
-                inst.DBEngine = ymlData.common_config["DATABASE_ENGINE"];
-                inst.ServerDB = AppHelper.GetServerFromConnectionString(inst.DBEngine, connection);
-                var dbName = AppHelper.GetDBNameFromConnectionString(inst.DBEngine, connection);
-                if (dbName == "{{ database }}")
-                  dbName = ymlData.variables["database"];
-                inst.DBName = dbName ?? string.Empty;
-
-                inst.Name = ymlData.variables["purpose"];
-                instance.PlatformVersion = AppHandlers.GetInstancePlatformVersion(instance.InstancePath);
-                instance.SolutionVersion = AppHandlers.GetInstanceSolutionVersion(instance.InstancePath);
-                inst.ProjectConfigPath = AppHelper.GetProjectConfigPath(ymlData, instance.PlatformVersion);
-
-                inst.Port = Convert.ToInt32(ymlData.variables["http_port"]);
-                inst.URL = AppHelper.GetClientURL(protocol, host, inst.Port);
-                inst.StoragePath = ymlData.variables["home_path"];
-                inst.LogFolder = ymlData.logs_path["LOGS_PATH"];
-                if (inst.LogFolder.Contains("{{ instance_name }}"))
-                {
-                  inst.LogFolder = inst.LogFolder.Replace("{{ instance_name }}", inst.Code);
-                }
-                inst.SourcesPath = ymlData.services_config["DevelopmentStudio"]["GIT_ROOT_DIRECTORY"];
-                if (inst.SourcesPath == "{{ home_path_src }}")
-                  inst.SourcesPath = ymlData.variables["home_path_src"];
-
-                var repositories = ymlData.services_config["DevelopmentStudio"]["REPOSITORIES"]["repository"];
-                instance.WorkingRepositoryName = String.Empty;
-                foreach (var repository in repositories)
-                {
-                  if (repository["@solutionType"] == "Work")
-                  {
-                    if (String.IsNullOrEmpty(instance.WorkingRepositoryName))
-                      instance.WorkingRepositoryName = System.IO.Path.Combine(instance.SourcesPath, repository["@folderName"]);
-                    else
-                    {
-                      instance.WorkingRepositoryName = instance.SourcesPath;
-                      break;
-                    }
-                  }
-                }
-                if (instance.Status != Constants.InstanceStatus.Update)
-                  instance.Status = AppHandlers.GetServiceStatus(instance);
-
-                instance.ConfigChanged = changeTime;
-
-                LoadInstances(_instance.InstancePath);
-              }
+              AppHandlers.UpdateInstanceData(inst);
             }
+            catch (Exception ex)
+            {
+              AppHandlers.ErrorHandler(inst, ex);
+              continue;
+            }
+
+            var instancePath = inst.InstancePath;
+            await RefreshInstanceUiAsync(instancePath);
+            continue;
           }
-          else
+
+          var changeTime = AppHelper.GetFileChangeTime(configYamlPath);
+          if (changeTime.EqualsUpToSeconds(inst.ConfigChanged))
+            continue;
+
+          try
           {
-            instance.DBEngine = string.Empty;
-            instance.ServerDB = string.Empty;
-            instance.DBName = string.Empty;
-            instance.Name = string.Empty;
-            instance.ProjectConfigPath = string.Empty;
-            instance.Port = 0;
-            instance.URL = string.Empty;
-            instance.StoragePath = string.Empty;
-            instance.SourcesPath = string.Empty;
-            instance.PlatformVersion = string.Empty;
-            instance.SolutionVersion = string.Empty;
-            instance.Status = Constants.InstanceStatus.NotInstalled;
-            instance.WorkingRepositoryName = string.Empty;
+            AppHandlers.UpdateInstanceData(inst);
           }
+          catch (Exception ex)
+          {
+            AppHandlers.ErrorHandler(inst, ex);
+            continue;
+          }
+
+          await RefreshInstanceUiAsync(inst.InstancePath);
         }
       }
+    }
+
+    private Task RefreshInstanceUiAsync(string instancePath)
+    {
+      return Dispatcher.InvokeAsync(() =>
+      {
+        LoadInstances(instancePath);
+        if (_instance != null && _instance.InstancePath == instancePath)
+          ActionButtonVisibleChanging(instance: _instance);
+      }).Task;
     }
   }
 }

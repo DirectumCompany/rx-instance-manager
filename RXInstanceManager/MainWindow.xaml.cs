@@ -604,6 +604,9 @@ namespace RXInstanceManager
           {
 
             AppHandlers.LaunchProcess(AppHelper.GetDoPath(_instance.InstancePath), string.Format("map update_config {0} -rundds=False -need_pause", config_filename), true, true);
+            AppHandlers.UpdateInstanceData(_instance);
+            LoadInstances(_instance.InstancePath);
+            ActionButtonVisibleChanging(instance: _instance);
           }
           catch (Exception ex)
           {
